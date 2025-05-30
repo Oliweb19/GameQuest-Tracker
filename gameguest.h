@@ -3,10 +3,13 @@
 
 using namespace std;
 
-/* Si el usuario tiene mas de 5 vic sube de nivel
+/* 
 
+-Si el usuario tiene mas de 5 vic sube de nivel
 - por cada fallo se le quita 0.50
 - y si adivina a la primera 1.50 (son 3 intentos)
+- Verificar que no exita el mismo alias a la hora de registrar
+- Verificar que el nombre no tenga numero
 
 */
 
@@ -22,7 +25,7 @@ struct Jugador{
     int derrotas;
     int partidas_jugadas;
     float saldo;
-    int estatus; // Si esta en 1 es activo y si esta en 0 esta inactivo
+    char privilegio; // Si esta en 1 es activo y si esta en 0 esta inactivo
 
     Jugador *prox;
 };
@@ -34,6 +37,10 @@ struct Misiones{
 
     Misiones *prox;
 };
+
+// Variables Globales
+
+int id_logueo;
 
 // Funciones y Procedimientos
 
@@ -62,7 +69,7 @@ Jugador *CrearNodoJugador(int id_Jugador, string nombre, string alias, int ano, 
     nuevo->derrotas = 0;
     nuevo->partidas_jugadas = 0;
     nuevo->saldo = saldo;
-    nuevo->estatus = 0;
+    nuevo->privilegio = 'u';
 
     nuevo->prox = NULL;
     
@@ -130,15 +137,41 @@ void ImprimirJugadores(Jugador *perfiles) {
         cout << "Derrotas: " << aux->derrotas << endl;
         cout << "Partidas jugadas: " << aux->partidas_jugadas << endl;
         cout << "Saldo: " << aux->saldo << endl;
-        if(aux->estatus == 1){
-            cout << "Estatus: Activo" << endl;
+        if(aux->privilegio == 'u'){
+            cout << "Privilegio de Usuarios" << endl;
         }
         else{
-            cout << "Estatus: Inactivo" << endl;
+            cout << "Privilegio de Admin" << endl;
         }
         cout<< "----------------------------------------------------"<<endl;
         aux = aux->prox;
     }
 
     
+}
+
+bool IniciarSesion(Jugador *perfiles){
+    Jugador *aux = perfiles;
+    string alias,contrasena;
+
+    cout<< "Ingrese su Alias: ";
+    cin.ignore();
+    getline(cin, alias);
+    cout<< "\n Ingrese su Contrasena: ";
+    getline(cin, contrasena);
+
+    while(aux != nullptr){
+        if(aux->alias == alias){
+            if(aux->contrasena == contrasena){
+                id_logueo = aux->id_Jugador;
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        aux = aux->prox;
+    }
+
+
 }
