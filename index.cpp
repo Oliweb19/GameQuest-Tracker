@@ -4,9 +4,12 @@
 
 main(){
     Jugador *perfiles = nullptr;
+    int i = 1;
 
-    for(int i = 1; i <= 3; i++){
+    while(i <= 3){
         AgregarJugador(&perfiles);
         ImprimirJugadores(perfiles);
+
+        i++;
     }
 }
