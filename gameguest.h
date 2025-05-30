@@ -16,6 +16,7 @@ struct Jugador{
     int id_Jugador;
     string nombre;
     string alias;
+    string contrasena;
     int ano; // es año
     int victorias;
     int derrotas;
@@ -40,15 +41,22 @@ bool Vacio(Jugador *lista){
     return lista == nullptr;
 }
 
+void MenuLogueo(){
+    cout<< "Bienvenido a GameQuest Tracker"<<endl;
+    cout<<"1. Iniciar Sesion"<<endl;
+    cout<<"2. Registrarse"<<endl;
+}
+
 // Jugador
 
-Jugador *CrearNodoJugador(int id_Jugador, string nombre, string alias, int ano){
+Jugador *CrearNodoJugador(int id_Jugador, string nombre, string alias, int ano, string contrasena){
     float saldo = 50;
     Jugador *nuevo = new Jugador;
 
     nuevo->id_Jugador = id_Jugador;
     nuevo->nombre = nombre;
     nuevo->alias = alias;
+    nuevo->contrasena = contrasena;
     nuevo->ano = ano;
     nuevo->victorias = 0;
     nuevo->derrotas = 0;
@@ -61,8 +69,8 @@ Jugador *CrearNodoJugador(int id_Jugador, string nombre, string alias, int ano){
     return nuevo;
 }
 
-void InsertarJugador(Jugador **perfiles, int id_Jugador, string nombre, string alias, int ano){
-    Jugador *nuevo = CrearNodoJugador(id_Jugador, nombre, alias, ano), *aux = *perfiles;
+void InsertarJugador(Jugador **perfiles, int id_Jugador, string nombre, string alias, int ano, string contrasena){
+    Jugador *nuevo = CrearNodoJugador(id_Jugador, nombre, alias, ano, contrasena), *aux = *perfiles;
 
     if(Vacio(*perfiles)){
         *perfiles = nuevo;
@@ -78,7 +86,7 @@ void InsertarJugador(Jugador **perfiles, int id_Jugador, string nombre, string a
 void AgregarJugador(Jugador **perfiles) {
     Jugador *aux = *perfiles;
     int id, ano;
-    string nombre, alias;
+    string nombre, alias, contrasena;
 
     if (Vacio(*perfiles)){
         id = 1;
@@ -95,11 +103,13 @@ void AgregarJugador(Jugador **perfiles) {
     getline(cin, nombre);
     cout << "Ingrese su alias de juego: ";
     getline(cin, alias);
+    cout << "Ingrese su contrasena: ";
+    getline(cin, contrasena);
     cout << "Ingrese su año de nacimiento: ";
     cin >> ano;
     cin.ignore();
 
-    InsertarJugador(perfiles, id, nombre, alias, ano);
+    InsertarJugador(perfiles, id, nombre, alias, ano, contrasena);
 }
 
 void ImprimirJugadores(Jugador *perfiles) {
@@ -114,6 +124,7 @@ void ImprimirJugadores(Jugador *perfiles) {
         cout << "ID: " << aux->id_Jugador << endl;
         cout << "Nombre: " << aux->nombre << endl;
         cout << "Alias: " << aux->alias << endl;
+        cout << "Contrasena: " << aux->contrasena << endl;
         cout << "Año de nacimiento: " << aux->ano << endl;
         cout << "Victorias: " << aux->victorias << endl;
         cout << "Derrotas: " << aux->derrotas << endl;
