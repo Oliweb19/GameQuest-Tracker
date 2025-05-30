@@ -3,6 +3,7 @@
 main(){
     Jugador *perfiles = nullptr;
     int op = 1;
+    bool logueo;
 
     while(op != 0){
         MenuLogueo();
@@ -11,9 +12,20 @@ main(){
 
         switch (op){
             case 1:
-                /* Parte de logueo */
+                logueo = false;
+                while (!logueo){
+                    logueo = IniciarSesion(perfiles);
+                    if(logueo == false){
+                        cout<< "Ingrese sus datos nuevamente."<<endl;
+                    }
+                    else{
+                        cout<< "Bienvenido a GameQuest Tracker"<<endl;
+                        
+                    }
+                }
                 break;
             case 2:
+                system("cls");
                 AgregarJugador(&perfiles);
                 break;
             
