@@ -77,15 +77,17 @@ void InsertarJugador(Jugador **perfiles, int id_Jugador, string nombre, string a
 
 void AgregarJugador(Jugador **perfiles) {
     Jugador *aux = *perfiles;
-    int id = 1, ano;
+    int id, ano;
     string nombre, alias;
 
-    if (!Vacio(*perfiles)) {
-        while (aux->prox != nullptr) {
+    if (Vacio(*perfiles)){
+        id = 1;
+    } 
+    else{
+        while (aux->prox != nullptr){
             aux = aux->prox;
         }
-        id = aux->id_Jugador + 1;
-        
+        id = aux->id_Jugador + 1; 
     }
 
     cout << "Ingrese su nombre: ";
@@ -101,26 +103,31 @@ void AgregarJugador(Jugador **perfiles) {
 }
 
 void ImprimirJugadores(Jugador *perfiles) {
+    Jugador *aux = perfiles;
+
     cout<< "----------------------------------------------------"<<endl;
     if(Vacio(perfiles)){
         cout << "No hay datos del Jugador." << endl;
         return;
     }
-    cout << "ID: " << perfiles->id_Jugador << endl;
-    cout << "Nombre: " << perfiles->nombre << endl;
-    cout << "Alias: " << perfiles->alias << endl;
-    cout << "Año de nacimiento: " << perfiles->ano << endl;
-    cout << "Victorias: " << perfiles->victorias << endl;
-    cout << "Derrotas: " << perfiles->derrotas << endl;
-    cout << "Partidas jugadas: " << perfiles->partidas_jugadas << endl;
-    cout << "Saldo: " << perfiles->saldo << endl;
-    if(perfiles->estatus == 1){
-        cout << "Estatus: Activo" << endl;
+    while (aux != nullptr) {
+        cout << "ID: " << aux->id_Jugador << endl;
+        cout << "Nombre: " << aux->nombre << endl;
+        cout << "Alias: " << aux->alias << endl;
+        cout << "Año de nacimiento: " << aux->ano << endl;
+        cout << "Victorias: " << aux->victorias << endl;
+        cout << "Derrotas: " << aux->derrotas << endl;
+        cout << "Partidas jugadas: " << aux->partidas_jugadas << endl;
+        cout << "Saldo: " << aux->saldo << endl;
+        if(aux->estatus == 1){
+            cout << "Estatus: Activo" << endl;
+        }
+        else{
+            cout << "Estatus: Inactivo" << endl;
+        }
+        cout<< "----------------------------------------------------"<<endl;
+        aux = aux->prox;
     }
-    else{
-        cout << "Estatus: Inactivo" << endl;
-    }
-    cout<< "----------------------------------------------------"<<endl;
 
     
 }
