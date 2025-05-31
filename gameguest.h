@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <random>    
+#include <chrono> 
 
 using namespace std;
 
@@ -25,7 +27,7 @@ struct Jugador{
     int derrotas;
     int partidas_jugadas;
     float saldo;
-    char privilegio; // Si esta en 1 es activo y si esta en 0 esta inactivo
+    char privilegio;
 
     Jugador *prox;
 };
@@ -41,6 +43,8 @@ struct Misiones{
 // Variables Globales
 
 int id_logueo;
+mt19937 globalGenerador(chrono::system_clock::now().time_since_epoch().count());
+
 
 // Funciones y Procedimientos
 
@@ -52,6 +56,27 @@ void MenuLogueo(){
     cout<< "Bienvenido a GameQuest Tracker"<<endl;
     cout<<"1. Iniciar Sesion"<<endl;
     cout<<"2. Registrarse"<<endl;
+    cout<<"0. Salir"<<endl;
+}
+
+void MenuUsuario(Jugador *perfiles){
+    Jugador *aux;
+    string alias;
+
+    aux = perfiles;
+    while(aux != nullptr){
+        if(aux->id_Jugador == id_logueo){
+            alias = aux->alias;
+        }
+        aux = aux->prox;
+    }
+
+    cout<< "Bienvenido "<<alias<<" a GameQuest Tracker"<<endl;
+    cout<<"1. Apuesta en Adivina el numero"<<endl;
+    cout<<"2. Ver Misiones"<<endl;
+    cout<<"3. Ver Raking"<<endl;
+    cout<<"4. Ver tu perfil"<<endl;
+    cout<<"0. Salir"<<endl;
 }
 
 // Jugador
@@ -172,6 +197,57 @@ bool IniciarSesion(Jugador *perfiles){
         }
         aux = aux->prox;
     }
+}
 
+// Simulador de juego
 
+int generarNumeroAleatorioOptimizada(int min, int max) {
+    uniform_int_distribution<int> distribucion(min, max);
+    return distribucion(globalGenerador); // Usamos el generador global
+}
+
+void AdivinaElNumero(){
+    int adivinar = generarNumeroAleatorioOptimizada(1, 10), num, i = 0, op = 1;
+    
+    cout<<"Bienvenido a Adivina el Numero"<<endl;
+
+    cout<<"---------------------------------------------------------"<<endl;
+    cout<<"Reglas: "<<endl;
+    cout<<"1. Tendras 3 intentos para adivinar un numero del 1 al 10"<<endl;
+    cout<<"2. Por cada intento fallido te quitaremos 0.50 bs"<<endl;
+    cout<<"3. Pero si adivinas a la primera te ganaras 1.50 bs"<<endl;
+    cout<<"---------------------------------------------------------"<<endl;
+
+    cout<<"\nQuieres Jugar?"<<endl;
+    cout<<"1. Si"<<endl;
+    cout<<"0. No"<<endl;
+    cout<< "Ingrese una opcion: ";
+    cin>> op;
+
+    while(op != 0){
+        while(i != 3){
+            cout<< "Ingrese el numero adivinar: ";
+            cin>> num;
+
+            if(num == adivinar){
+                cout<< "Ganaste!!" << endl;
+                break;
+            }
+            else{
+                if(num > adivinar){
+                    cout<< "El numero es menor"<<endl;
+                }
+                else if(num < adivinar){
+                    cout<< "El numero es mayor"<<endl;
+                }
+            }
+
+            if(i == 3){
+                cout<<"Perdiste :("<<endl;
+                cout<<"El numero era: "<<adivinar<<endl;
+            }
+
+            i++;
+        }
+    }
 }
