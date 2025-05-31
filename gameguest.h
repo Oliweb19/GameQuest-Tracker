@@ -206,8 +206,18 @@ int generarNumeroAleatorioOptimizada(int min, int max) {
     return distribucion(globalGenerador); // Usamos el generador global
 }
 
-void AdivinaElNumero(){
+void AdivinaElNumero(Jugador **perfiles){
+    Jugador *aux = *perfiles;
     int adivinar = generarNumeroAleatorioOptimizada(1, 10), num, i = 0, op = 1;
+    float saldo;
+
+    while(aux != nullptr){
+        if(aux->id_Jugador == id_logueo){
+            saldo = aux->saldo;
+        }
+
+        aux = aux->prox;
+    }
     
     cout<<"Bienvenido a Adivina el Numero"<<endl;
 
@@ -226,6 +236,8 @@ void AdivinaElNumero(){
 
     while(op != 0){
         while(i != 3){
+            cout<<"Tu Saldo es: "<<saldo<<endl;
+            cout<<"-------------------------------"<<endl;
             cout<< "Ingrese el numero adivinar: ";
             cin>> num;
 
