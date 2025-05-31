@@ -1,8 +1,9 @@
 #include "gameguest.h"
 
 main(){
-    Jugador *perfiles = nullptr;
-    int op = 1;
+    Jugador *perfiles = nullptr, *aux;
+    int op = 1, opu = 1;
+    char priv;
     bool logueo;
 
     while(op != 0){
@@ -19,8 +20,35 @@ main(){
                         cout<< "Ingrese sus datos nuevamente."<<endl;
                     }
                     else{
-                        cout<< "Bienvenido a GameQuest Tracker"<<endl;
-                        
+                        system("cls");
+                        cout<< "Cargando sus datos..."<<endl;
+                        aux = perfiles;
+                        while(aux != nullptr){
+                            if(aux->id_Jugador == id_logueo){
+                                priv = aux->privilegio;
+                            }
+                            aux = aux->prox;
+                        }
+
+                        if(priv == 'u'){
+                            while(opu != 0){
+                                MenuUsuario(perfiles);
+                                cout<< "Ingrese una opcion: ";
+                                cin>> opu;
+
+                                switch (opu){
+                                case 1:
+                                    AdivinaElNumero();
+                                    break;
+                                
+                                default:
+                                    cout<< "Opcion Invalida, ingrese una opcion valida"<<endl;
+                                    break;
+                                }
+                            }
+
+
+                        }
                     }
                 }
                 break;
