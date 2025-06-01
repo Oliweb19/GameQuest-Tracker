@@ -80,6 +80,80 @@ void MenuUsuario(Jugador *perfiles){
     cout<<"0. Cerrar Sesion"<<endl;
 }
 
+// Validaciones
+
+string ValidarNombre(){
+    string nombre;
+    bool nombreValido = false;
+
+    do {
+        cout << "Ingrese su nombre: ";
+        cin.ignore();
+        getline(cin, nombre);
+
+        nombreValido = true;
+        for(char c : nombre) {
+            if(isdigit(c)) {
+                nombreValido = false;
+                cout << "El nombre no debe contener números. Intente de nuevo." << endl;
+                break;
+            }
+        }
+        if(nombre.empty()) {
+            nombreValido = false;
+            cout << "El nombre no puede estar vacío. Intente de nuevo." << endl;
+        }
+    } while(!nombreValido);
+
+    return nombre;
+}
+
+int ValidarEdad(){
+    int ano, anoAct = 2025, edad;
+    bool anoValido = false;
+
+
+    do{
+        cout << "Ingrese su año de nacimiento: ";
+        cin >> ano;
+
+        edad = anoAct - ano;
+
+        if(edad < 18){
+            cout<<"No cumples la edad necesaria para registrarte en esta plataforma, tienes que tener +18 años!"<<endl;
+        }
+        else{
+            anoValido = true;
+        }
+    }while(!anoValido);
+
+    return ano;
+}
+
+string ValidarAlias(Jugador *perfiles) {
+    Jugador *aux;
+    string alias;
+    bool aliasValido = false;
+
+    do {
+        cout << "Ingrese su alias de juego: ";
+        getline(cin, alias);
+
+        aliasValido = false; // Asumimos que el alias no existe hasta que se demuestre lo contrario
+        aux = perfiles;
+        while (aux != nullptr) {
+            if (aux->alias == alias) {
+                aliasValido = true;
+                cout << "El alias '" << alias << "' ya existe. Intente con otro." << endl;
+                break; // Salimos del while si encontramos el alias
+            }
+            aux = aux->prox;
+        }
+    }while(aliasValido);
+
+    return alias;
+}
+
 // Jugador
 
 Jugador *CrearNodoJugador(int id_Jugador, string nombre, string alias, int ano, string contrasena){
@@ -131,17 +205,17 @@ void AgregarJugador(Jugador **perfiles) {
         id = aux->id_Jugador + 1; 
     }
 
-    cout << "Ingrese su nombre: ";
-    cin.ignore();
-    getline(cin, nombre);
-    cout << "Ingrese su alias de juego: ";
-    getline(cin, alias);
+    cout<<"\t\tRegistrate"<<endl;
+    cout<<"========================================="<<endl;
+
+    nombre = ValidarNombre();
+    alias = ValidarAlias(*perfiles);
+
     cout << "Ingrese su contrasena: ";
     getline(cin, contrasena);
-    cout << "Ingrese su año de nacimiento: ";
-    cin >> ano;
-    cin.ignore();
 
+    ano = ValidarEdad();
+    
     InsertarJugador(perfiles, id, nombre, alias, ano, contrasena);
 }
 
@@ -179,22 +253,48 @@ void ImprimirJugadores(Jugador *perfiles) {
 bool IniciarSesion(Jugador *perfiles){
     Jugador *aux = perfiles;
     string alias,contrasena;
+    bool entrar;
 
-    cout<< "Ingrese su Alias: ";
-    cin.ignore();
-    getline(cin, alias);
-    cout<< "Ingrese su Contrasena: ";
-    getline(cin, contrasena);
+    cout<<"\t\tIniciar Sesion"<<endl;
+    cout<<"========================================="<<endl;
+    do{
+        cout<< "Ingrese su Alias: ";
+        cin.ignore();
+        getline(cin, alias);
+        cout<< "Ingrese su Contraseña: ";
+        getline(cin, contrasena);
 
+        entrar = false;
+        while(aux != nullptr){
+            if(aux->alias == alias){
+                if(aux->contrasena == contrasena){
+                    id_logueo = aux->id_Jugador;
+                    entrar = true;
+                    return true;
+                }
+                else{
+                    //cout<< "Ingrese sus datos nuevamente."<<endl;
+                }
+            }
+            aux = aux->prox;
+        }
+    }while(entrar);
+}
+
+void PerfilJugador(Jugador *perfiles){
+    Jugador *aux = perfiles;
+
+    system("cls");
+    cout<<"\t\tTu Perfil"<<endl;
+    cout<<"========================================="<<endl;
     while(aux != nullptr){
-        if(aux->alias == alias){
-            if(aux->contrasena == contrasena){
-                id_logueo = aux->id_Jugador;
-                return true;
-            }
-            else{
-                return false;
-            }
+        if(aux->id_Jugador == id_logueo){
+            cout<<"\t\tSaldo: Bs."<<aux->saldo<<endl;
+            cout<<"Nombre: "<<aux->nombre<<" | "<<"Alias: "<<aux->alias<<endl;
+            cout<<"Contaseña: "<<aux->contrasena<<endl;
+            cout<<"Victorias: "<<aux->victorias<<" | "<<"Derrotas: "<<aux->derrotas<<endl;
+            cout<<"Partidas Jugadas: "<<aux->partidas_jugadas<<endl;
+            cout<<"========================================="<<endl;
         }
         aux = aux->prox;
     }
@@ -238,6 +338,7 @@ void AdivinaElNumero(Jugador **perfiles){
         aux = aux->prox;
     }
     
+    system("cls");
     cout<<"Bienvenido a Adivina el Numero"<<endl;
     cout<<"---------------------------------------------------------"<<endl;
     cout<<"Reglas: "<<endl;
