@@ -2,6 +2,7 @@
 #include <string>
 #include <random>    
 #include <chrono> 
+#include <windows.h>
 
 using namespace std;
 
@@ -61,22 +62,22 @@ void MenuLogueo(){
 
 void MenuUsuario(Jugador *perfiles){
     Jugador *aux;
-    string alias;
+    string nombre;
 
     aux = perfiles;
     while(aux != nullptr){
         if(aux->id_Jugador == id_logueo){
-            alias = aux->alias;
+            nombre = aux->nombre;
         }
         aux = aux->prox;
     }
 
-    cout<< "Bienvenido "<<alias<<" a GameQuest Tracker"<<endl;
+    cout<< "Bienvenido "<<nombre<<" a GameQuest Tracker"<<endl;
     cout<<"1. Apuesta en Adivina el numero"<<endl;
     cout<<"2. Ver Misiones"<<endl;
     cout<<"3. Ver Raking"<<endl;
     cout<<"4. Ver tu perfil"<<endl;
-    cout<<"0. Salir"<<endl;
+    cout<<"0. Cerrar Sesion"<<endl;
 }
 
 // Jugador
@@ -182,7 +183,7 @@ bool IniciarSesion(Jugador *perfiles){
     cout<< "Ingrese su Alias: ";
     cin.ignore();
     getline(cin, alias);
-    cout<< "\n Ingrese su Contrasena: ";
+    cout<< "Ingrese su Contrasena: ";
     getline(cin, contrasena);
 
     while(aux != nullptr){
@@ -206,21 +207,38 @@ int generarNumeroAleatorioOptimizada(int min, int max) {
     return distribucion(globalGenerador); // Usamos el generador global
 }
 
-void AdivinaElNumero(Jugador **perfiles){
+void PuntuacionJugador(Jugador **perfiles, int victorias, int derrotas, float saldo){
     Jugador *aux = *perfiles;
-    int adivinar = generarNumeroAleatorioOptimizada(1, 10), num, i = 0, op = 1;
-    float saldo;
 
     while(aux != nullptr){
         if(aux->id_Jugador == id_logueo){
-            saldo = aux->saldo;
+            aux->victorias = victorias;
+            aux->derrotas = derrotas;
+            aux->partidas_jugadas += 1;
+            aux->saldo = saldo;
         }
+        aux = aux->prox;
+    }
+}
 
+void AdivinaElNumero(Jugador **perfiles){
+    Jugador *aux = *perfiles;
+    int adivinar, num, op = 1;
+    int victorias = 0, derrotas = 0;
+    float saldo = 0;
+
+    // Buscar datos del jugador logueado
+    while(aux != nullptr){
+        if(aux->id_Jugador == id_logueo){
+            saldo = aux->saldo;
+            victorias = aux->victorias;
+            derrotas = aux->derrotas;
+            break;
+        }
         aux = aux->prox;
     }
     
     cout<<"Bienvenido a Adivina el Numero"<<endl;
-
     cout<<"---------------------------------------------------------"<<endl;
     cout<<"Reglas: "<<endl;
     cout<<"1. Tendras 3 intentos para adivinar un numero del 1 al 10"<<endl;
@@ -228,38 +246,61 @@ void AdivinaElNumero(Jugador **perfiles){
     cout<<"3. Pero si adivinas a la primera te ganaras 1.50 bs"<<endl;
     cout<<"---------------------------------------------------------"<<endl;
 
-    cout<<"\nQuieres Jugar?"<<endl;
-    cout<<"1. Si"<<endl;
-    cout<<"0. No"<<endl;
-    cout<< "Ingrese una opcion: ";
-    cin>> op;
+    do{
+        cout<<"\nQuieres Jugar?"<<endl;
+        cout<<"1. Si"<<endl;
+        cout<<"0. No"<<endl;
+        cout<< "Ingrese una opcion: ";
+        cin>> op;
 
-    while(op != 0){
-        while(i != 3){
-            cout<<"Tu Saldo es: "<<saldo<<endl;
-            cout<<"-------------------------------"<<endl;
-            cout<< "Ingrese el numero adivinar: ";
-            cin>> num;
+        if(op == 1){
+            adivinar = generarNumeroAleatorioOptimizada(1, 10);
+            int i = 0;
+            bool ganado = false;
 
-            if(num == adivinar){
-                cout<< "Ganaste!!" << endl;
-                break;
-            }
-            else{
-                if(num > adivinar){
-                    cout<< "El numero es menor"<<endl;
+            while(i < 3){
+                cout<<"Tu Saldo es: "<<saldo<<endl;
+                cout<<"-------------------------------"<<endl;
+                cout<< "Ingrese el numero a adivinar: ";
+                cin >> num;
+
+                // Validar que no ingrese letras
+                if(cin.fail()){
+                    cin.clear();
+                    cin.ignore(1000, '\n');
+                    cout << "Entrada invalida. Intente de nuevo." << endl;
+                    continue;
                 }
-                else if(num < adivinar){
-                    cout<< "El numero es mayor"<<endl;
+
+                if(num == adivinar){
+                    cout<< "Ganaste!!" << endl;
+                    victorias += 1;
+                    if(i == 0){
+                        saldo += 1.50;
+                    }
+                    PuntuacionJugador(perfiles, victorias, derrotas, saldo);
+                    ganado = true;
+                    break;
+                } 
+                else{
+                    if(num > adivinar){
+                        cout<< "El numero es menor"<<endl;
+                    } 
+                    else{
+                        cout<< "El numero es mayor"<<endl;
+                    }
+                    saldo -= 0.50;
                 }
+                i++;
             }
 
-            if(i == 3){
+            if(!ganado){
                 cout<<"Perdiste :("<<endl;
                 cout<<"El numero era: "<<adivinar<<endl;
+                derrotas += 1;
+                PuntuacionJugador(perfiles, victorias, derrotas, saldo);
             }
-
-            i++;
         }
-    }
+
+    }while(op != 0);
 }
