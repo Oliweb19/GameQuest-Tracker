@@ -45,6 +45,9 @@ main(){
                                     case 1:
                                         AdivinaElNumero(&perfiles);
                                         break;
+                                    case 4:
+                                        PerfilJugador(perfiles);
+                                        break;
                                     case 0:
                                         cout<<"Saliendo..."<<endl;
                                         break;
