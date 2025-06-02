@@ -3,7 +3,7 @@
 main(){
     SetConsoleOutputCP(CP_UTF8); // Sirve para imprimir caracteres especiales en la consola
 
-    Jugador *perfiles = nullptr, *aux;
+    Jugador *perfiles = nullptr, *aux, *ranking = nullptr;
     int op = 1, opu;
     char priv;
     bool logueo;
@@ -45,6 +45,10 @@ main(){
                                     case 1:
                                         AdivinaElNumero(&perfiles);
                                         break;
+                                    case 3:
+                                        ranking = Ranking(perfiles);
+                                        ImprimirRanking(ranking);
+                                        break;
                                     case 4:
                                         PerfilJugador(perfiles);
                                         break;
@@ -71,7 +75,8 @@ main(){
                 break;
             case 3: // Lo estoy usando para ver los perfiles despues de que juego.
                 system("cls");
-                ImprimirJugadores(perfiles);
+                //ImprimirJugadores(perfiles);
+                ImprimirRanking(perfiles);
                 system("pause");
                 break;
             case 0:
