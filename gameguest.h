@@ -300,6 +300,64 @@ void PerfilJugador(Jugador *perfiles){
     }
 }
 
+Jugador *Ranking(Jugador *perfiles){
+    Jugador *aux = perfiles, *ranking = nullptr;
+
+    if (Vacio(perfiles)) {
+        cout << "No hay jugadores para mostrar en el ranking." << endl;
+    }
+
+    while (aux != nullptr) {
+        Jugador *nuevo = new Jugador(*aux);
+        nuevo->prox = nullptr;
+
+        // Insertar ordenado en la lista ranking
+        if (ranking == nullptr || 
+            nuevo->victorias > ranking->victorias ||
+            (nuevo->victorias == ranking->victorias && nuevo->derrotas < ranking->derrotas)) {
+            // Insertar al inicio
+            nuevo->prox = ranking;
+            ranking = nuevo;
+        } else {
+            Jugador *r = ranking;
+            while (r->prox != nullptr && (
+                r->prox->victorias > nuevo->victorias ||
+                (r->prox->victorias == nuevo->victorias && r->prox->derrotas < nuevo->derrotas)
+            )) {
+                r = r->prox;
+            }
+            nuevo->prox = r->prox;
+            r->prox = nuevo;
+        }
+
+        aux = aux->prox;
+    }
+
+    return ranking;
+}
+
+void ImprimirRanking(Jugador *ranking){
+    Jugador *perfil = ranking;
+    int pos = 1;
+
+    cout<<"\t\tRANKING DE JUGADORES"<<endl;
+    cout<<"=================================================" << endl;
+    cout<<"Pos|   Alias   | V | D | BS "<<endl;
+    while (perfil != nullptr) {
+        /*cout << pos << ". " << endl;
+        cout << "Alias: " << perfil->alias << endl;
+        cout << "Victorias: " << perfil->victorias << endl;
+        cout << "Derrotas: "<< perfil->derrotas << endl;
+        cout << "Partidas jugadas: "<< perfil->partidas_jugadas<<endl;
+        cout << "Saldo: "<< perfil->saldo<<endl;*/
+
+        cout<<" "<<pos<<"    "<<perfil->alias<<"   "<<perfil->victorias<<"   "<<perfil->derrotas<<"   "<<perfil->saldo<<endl;
+        perfil = perfil->prox;
+        pos++;
+    }
+    cout<<"=================================================" << endl;
+}
+
 // Simulador de juego
 
 int generarNumeroAleatorioOptimizada(int min, int max) {
