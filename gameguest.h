@@ -1,22 +1,31 @@
 #include <iostream>
 #include <string>
-#include <random>    
-#include <chrono> 
+#include <random>
+#include <chrono>
 #include <windows.h>
+#include <ctime> // Para fecha actual
 
 using namespace std;
 
-/* 
-
+/*
 -Si el usuario tiene mas de 5 vic sube de nivel
 - por cada fallo se le quita 0.50
 - y si adivina a la primera 1.50 (son 3 intentos)
 - Verificar que no exita el mismo alias a la hora de registrar
 - Verificar que el nombre no tenga numero
-
 */
 
 // Estructuras de Datos
+
+const int MAX_MISIONES = 10;
+
+// Estructura para almacenar información sobre logros obtenidos
+struct LogroObtenido {
+    string titulo;
+    string descripcion_detallada;
+    string fecha_obtencion;
+    LogroObtenido *prox;
+};
 
 struct Jugador{
     int id_Jugador;
@@ -30,23 +39,161 @@ struct Jugador{
     float saldo;
     char privilegio;
 
+    bool misiones_completadas[MAX_MISIONES]{};
+    LogroObtenido *logros_obtenidos = nullptr;
     Jugador *prox;
 };
 
-struct Misiones{
+struct Mision {
     string titulo;
     string descripcion;
-    string condiciones;
-
-    Misiones *prox;
+    string requisitos;
+    float saldo_otorgado;
+    Mision *prox;
 };
 
 // Variables Globales
 
-int id_logueo;
+int id_logueo = -1; //-1 porque ningun usuario esta logueado al inicio
 mt19937 globalGenerador(chrono::system_clock::now().time_since_epoch().count());
+Mision *lista_misiones = nullptr; // Cabeza de la lista enlazada de misiones
 
+string misiones_titulos[MAX_MISIONES]; //guarda el nombre de las misiones
+int cant_misiones = 0;
 
+// VER ESTO!!
+string obtenerFechaHoy() {
+    time_t t = time(nullptr);
+    tm *now = localtime(&t);
+    char buf[11];
+    strftime(buf, sizeof(buf), "%d/%m/%Y", now); //El formato "%d/%m/%Y" significa: día con dos dígitos (%d), slash, mes con dos dígitos (%m), slash, año con cuatro dígitos (%Y).
+    return string(buf);
+}
+
+// --- AGREGA LOGRO A LA LISTA DE LOGROS OBTENIDOS ---
+void agregarLogroObtenido(Jugador *jugador, const string& titulo, const string& descripcion) {
+    LogroObtenido *nuevo = new LogroObtenido;
+    nuevo->titulo = titulo;
+    nuevo->descripcion_detallada = descripcion;
+    nuevo->fecha_obtencion = obtenerFechaHoy();
+    nuevo->prox = nullptr;
+
+    if (!jugador->logros_obtenidos) { //Si el jugador NO tiene logros aún ese será el primero.
+        jugador->logros_obtenidos = nuevo;
+    } else {
+        LogroObtenido *aux = jugador->logros_obtenidos;
+        while (aux->prox) aux = aux->prox;
+        aux->prox = nuevo;
+    }
+}
+
+Mision *crearMision(string titulo, string descripcion, string requisitos, float saldo_otorgado) {
+    Mision *nuevo = new Mision;
+    nuevo->titulo = titulo;
+    nuevo->descripcion = descripcion;
+    nuevo->requisitos = requisitos;
+    nuevo->saldo_otorgado = saldo_otorgado;
+    nuevo->prox = nullptr;
+    return nuevo;
+}
+
+void insertarMision(Mision **lista, string titulo, string descripcion, string requisitos, float saldo_otorgado) {
+    Mision *nuevo = crearMision(titulo, descripcion, requisitos, saldo_otorgado);
+    if (!*lista) {
+        *lista = nuevo;
+    } else {
+        Mision *temp = *lista;
+        while (temp->prox) {
+            temp = temp->prox;
+        }
+        temp->prox = nuevo;
+    }
+    if (cant_misiones < MAX_MISIONES) {  //Verifica que no exceda el maximo de misiones!!!
+        misiones_titulos[cant_misiones++] = titulo;
+    }
+}
+
+void inicializarMisiones() {
+    insertarMision(&lista_misiones, "Primer Acierto", "Adivina el número a la primera.", "Adivinar a la primera", 2);
+    insertarMision(&lista_misiones, "Tres Victorias", "Gana tres partidas.", "Alcanzar 3 victorias", 5);
+    insertarMision(&lista_misiones, "Jugador Persistente", "Juega 5 partidas.", "Jugar 5 partidas", 3);
+}
+
+// Busca el índice de una misión por su título en el arreglo. Si no existe, devuelve -1.
+int buscarIndiceMision(string buscado) {
+    for (int i = 0; i < cant_misiones; i++) {
+        if (misiones_titulos[i] == buscado) {
+            return i; // Si lo encuentra devuelve la posición
+        }
+    }
+    return -1; // Si no lo encuentra, devuelve -1
+}
+
+void verificarMisiones(Jugador **perfiles) {
+    Jugador *jugador_actual = nullptr;
+    Jugador *aux_jugador = *perfiles; //recorrer lista de jugadores desde el inicio
+    while (aux_jugador != nullptr) {
+        if (aux_jugador->id_Jugador == id_logueo) { //compara el id de cada jugador con el id del usuario logueado
+            jugador_actual = aux_jugador;
+            break;
+        }
+        aux_jugador = aux_jugador->prox;
+    }
+
+    if (jugador_actual) { //solo entra al bloque si se encontro al jugador logueado y lo tengo guardado en jugador actual
+        Mision *mision_actual = lista_misiones; //recorrer lista de misiones
+        int posicion_mision = 0;
+        while (mision_actual != nullptr) { //recorre todas las misiones
+            bool cumplida = false;
+            if (mision_actual->titulo == "Primer Acierto" && jugador_actual->partidas_jugadas >= 1 && jugador_actual->victorias >= 1) {
+                cumplida = true;
+            } else if (mision_actual->titulo == "Tres Victorias" && jugador_actual->victorias >= 3) {
+                cumplida = true;
+            } else if (mision_actual->titulo == "Jugador Persistente" && jugador_actual->partidas_jugadas >= 5) {
+                cumplida = true;
+            }
+
+            // Si cumplida y no la había completado
+            int indice = buscarIndiceMision(mision_actual->titulo); //cada jugador tiene un arreglo de booleanos (misiones_completadas) donde cada posición indica si esa misión está completada para ese jugador.
+            if (cumplida && indice != -1 && !jugador_actual->misiones_completadas[indice]) { //Si el índice es -1, significa que el título de la misión actual NO está en el arreglo de títulos de misiones.
+                cout << "\n¡Misión Cumplida! '" << mision_actual->titulo << "': +" << mision_actual->saldo_otorgado << " saldo." << endl;
+                cout << "Descripción: " << mision_actual->descripcion << endl;
+                jugador_actual->saldo += mision_actual->saldo_otorgado; //suma la recompensa de la mision al saldo del jugador
+                jugador_actual->misiones_completadas[indice] = true;
+
+                // NUEVO: Agregar logro con descripción detallada y fecha
+                string descripcion_detallada = "Has superado la misión '" + mision_actual->titulo + "'. " + mision_actual->descripcion +
+                                               " Requisito: " + mision_actual->requisitos + ".";
+                agregarLogroObtenido(jugador_actual, mision_actual->titulo, descripcion_detallada);
+            }
+            mision_actual = mision_actual->prox;
+            posicion_mision++;
+        }
+
+        // Subida de nivel
+        if (jugador_actual->victorias > 5 && jugador_actual->privilegio == 'u') {
+            cout << "\n¡Felicidades! Has subido de nivel." << endl;
+            jugador_actual->privilegio = 'a';
+        }
+    }
+}
+
+void mostrarMisiones() {
+    cout << "\n--- Misiones Disponibles ---" << endl;
+    Mision *mision_actual = lista_misiones;
+    if (!mision_actual) {
+        cout << "No hay misiones disponibles por ahora." << endl;
+        return;
+    }
+    while (mision_actual != nullptr) {
+        cout << "Título: " << mision_actual->titulo << endl;
+        cout << "Descripción: " << mision_actual->descripcion << endl;
+        cout << "Requisitos: " << mision_actual->requisitos << endl;
+        cout << "Recompensa: +" << mision_actual->saldo_otorgado << " saldo" << endl;
+        cout << "--------------------------" << endl;
+        mision_actual = mision_actual->prox;
+    }
+}
 // Funciones y Procedimientos
 
 bool Vacio(Jugador *lista){
@@ -72,7 +219,7 @@ void MenuUsuario(Jugador *perfiles){
         aux = aux->prox;
     }
 
-    cout<< "Bienvenido "<<nombre<<" a GameQuest Tracker"<<endl;
+    cout<< "Hola, "<<nombre<<" elije una opcion: "<<endl;
     cout<<"1. Apuesta en Adivina el numero"<<endl;
     cout<<"2. Ver Misiones"<<endl;
     cout<<"3. Ver Raking"<<endl;
@@ -88,7 +235,6 @@ string ValidarNombre(){
 
     do {
         cout << "Ingrese su nombre: ";
-        cin.ignore();
         getline(cin, nombre);
 
         nombreValido = true;
@@ -111,7 +257,6 @@ string ValidarNombre(){
 int ValidarEdad(){
     int ano, anoAct = 2025, edad;
     bool anoValido = false;
-
 
     do{
         cout << "Ingrese su año de nacimiento: ";
@@ -139,17 +284,21 @@ string ValidarAlias(Jugador *perfiles) {
         cout << "Ingrese su alias de juego: ";
         getline(cin, alias);
 
-        aliasValido = false; // Asumimos que el alias no existe hasta que se demuestre lo contrario
+        aliasValido = true;
         aux = perfiles;
         while (aux != nullptr) {
             if (aux->alias == alias) {
-                aliasValido = true;
+                aliasValido = false;
                 cout << "El alias '" << alias << "' ya existe. Intente con otro." << endl;
-                break; // Salimos del while si encontramos el alias
+                break;
             }
             aux = aux->prox;
         }
-    }while(aliasValido);
+        if(alias.empty()) {
+            aliasValido = false;
+            cout << "El alias no puede estar vacío. Intente de nuevo." << endl;
+        }
+    }while(!aliasValido);
 
     return alias;
 }
@@ -171,8 +320,11 @@ Jugador *CrearNodoJugador(int id_Jugador, string nombre, string alias, int ano, 
     nuevo->saldo = saldo;
     nuevo->privilegio = 'u';
 
+    for (int i = 0; i < MAX_MISIONES; i++) nuevo->misiones_completadas[i] = false;
+    nuevo->logros_obtenidos = nullptr;
+
     nuevo->prox = NULL;
-    
+
     return nuevo;
 }
 
@@ -182,7 +334,7 @@ void InsertarJugador(Jugador **perfiles, int id_Jugador, string nombre, string a
     if(Vacio(*perfiles)){
         *perfiles = nuevo;
     }
-     else{
+    else{
         while(aux->prox != nullptr){
             aux = aux->prox;
         }
@@ -197,17 +349,18 @@ void AgregarJugador(Jugador **perfiles) {
 
     if (Vacio(*perfiles)){
         id = 1;
-    } 
+    }
     else{
         while (aux->prox != nullptr){
             aux = aux->prox;
         }
-        id = aux->id_Jugador + 1; 
+        id = aux->id_Jugador + 1;
     }
 
     cout<<"\t\tRegistrate"<<endl;
     cout<<"========================================="<<endl;
 
+    cin.ignore();
     nombre = ValidarNombre();
     alias = ValidarAlias(*perfiles);
 
@@ -215,7 +368,7 @@ void AgregarJugador(Jugador **perfiles) {
     getline(cin, contrasena);
 
     ano = ValidarEdad();
-    
+
     InsertarJugador(perfiles, id, nombre, alias, ano, contrasena);
 }
 
@@ -247,57 +400,34 @@ void ImprimirJugadores(Jugador *perfiles) {
         aux = aux->prox;
     }
 
-    
 }
 
 bool IniciarSesion(Jugador *perfiles){
-    Jugador *aux = perfiles;
+    Jugador *aux;
     string alias,contrasena;
-    bool entrar;
+    bool entrar = false;
 
     cout<<"\t\tIniciar Sesion"<<endl;
     cout<<"========================================="<<endl;
+    cin.ignore();
     do{
+        aux = perfiles;
         cout<< "Ingrese su Alias: ";
-        cin.ignore();
         getline(cin, alias);
         cout<< "Ingrese su Contraseña: ";
         getline(cin, contrasena);
 
-        entrar = false;
         while(aux != nullptr){
-            if(aux->alias == alias){
-                if(aux->contrasena == contrasena){
-                    id_logueo = aux->id_Jugador;
-                    entrar = true;
-                    return true;
-                }
-                else{
-                    //cout<< "Ingrese sus datos nuevamente."<<endl;
-                }
+            if(aux->alias == alias && aux->contrasena == contrasena){
+                id_logueo = aux->id_Jugador;
+                entrar = true;
+                return true;
             }
             aux = aux->prox;
         }
-    }while(entrar);
-}
-
-void PerfilJugador(Jugador *perfiles){
-    Jugador *aux = perfiles;
-
-    system("cls");
-    cout<<"\t\tTu Perfil"<<endl;
-    cout<<"========================================="<<endl;
-    while(aux != nullptr){
-        if(aux->id_Jugador == id_logueo){
-            cout<<"\t\tSaldo: Bs."<<aux->saldo<<endl;
-            cout<<"Nombre: "<<aux->nombre<<" | "<<"Alias: "<<aux->alias<<endl;
-            cout<<"Contaseña: "<<aux->contrasena<<endl;
-            cout<<"Victorias: "<<aux->victorias<<" | "<<"Derrotas: "<<aux->derrotas<<endl;
-            cout<<"Partidas Jugadas: "<<aux->partidas_jugadas<<endl;
-            cout<<"========================================="<<endl;
-        }
-        aux = aux->prox;
-    }
+        if(!entrar) cout << "Alias o contraseña incorrectos. Intente de nuevo." << endl;
+    }while(!entrar);
+    return false;
 }
 
 Jugador *Ranking(Jugador *perfiles){
@@ -336,26 +466,67 @@ Jugador *Ranking(Jugador *perfiles){
     return ranking;
 }
 
+string espaciar(int tamanio, int valor){
+    int espacio = 0;
+    string texto = "";
+
+    espacio = valor - tamanio;
+
+    for(int i = 0; i < espacio; i++){
+        texto += " ";
+    }
+
+    return texto;
+}
+
 void ImprimirRanking(Jugador *ranking){
     Jugador *perfil = ranking;
     int pos = 1;
 
     cout<<"\t\tRANKING DE JUGADORES"<<endl;
     cout<<"=================================================" << endl;
-    cout<<"Pos|   Alias   | V | D | BS "<<endl;
-    while (perfil != nullptr) {
-        /*cout << pos << ". " << endl;
-        cout << "Alias: " << perfil->alias << endl;
-        cout << "Victorias: " << perfil->victorias << endl;
-        cout << "Derrotas: "<< perfil->derrotas << endl;
-        cout << "Partidas jugadas: "<< perfil->partidas_jugadas<<endl;
-        cout << "Saldo: "<< perfil->saldo<<endl;*/
-
-        cout<<" "<<pos<<"    "<<perfil->alias<<"   "<<perfil->victorias<<"   "<<perfil->derrotas<<"   "<<perfil->saldo<<endl;
+    cout<<"\tTOP|    Alias     | V | D | BS "<<endl;
+    cout<<"\t-------------------------------"<<endl;
+    while (perfil != nullptr && perfil->id_Jugador < 6){
+        cout<<"\t"<< pos << espaciar(to_string(pos).size(), 7)
+            << perfil->alias << espaciar(perfil->alias.size(), 13)
+            << perfil->victorias << espaciar(to_string(perfil->victorias).size(), 4)
+            << perfil->derrotas << espaciar(to_string(perfil->derrotas).size(), 4)
+            << perfil->saldo << endl;
+        cout<<"\t-------------------------------"<<endl;
         perfil = perfil->prox;
         pos++;
     }
     cout<<"=================================================" << endl;
+}
+
+void PerfilJugador(Jugador *perfiles){
+    Jugador *aux = perfiles;
+
+    system("cls");
+    cout<<"\t\tTu Perfil"<<endl;
+    cout<<"========================================="<<endl;
+    while(aux != nullptr){
+        if(aux->id_Jugador == id_logueo){
+            cout<<"\t\tSaldo: Bs."<<aux->saldo<<endl;
+            cout<<"Nombre: "<<aux->nombre<<" | "<<"Alias: "<<aux->alias<<endl;
+            cout<<"Contaseña: "<<aux->contrasena<<endl;
+            cout<<"Victorias: "<<aux->victorias<<" | "<<"Derrotas: "<<aux->derrotas<<endl;
+            cout<<"Partidas Jugadas: "<<aux->partidas_jugadas<<endl;
+            cout<<"========================================="<<endl;
+            cout<<"Logros Obtenidos:"<<endl;
+            LogroObtenido *logro = aux->logros_obtenidos;
+            if (!logro) {
+                cout << "  Ningún logro obtenido aún." << endl;
+            }
+            while (logro) {
+                cout << "- " << logro->titulo << " (" << logro->fecha_obtencion << "): " << logro->descripcion_detallada << endl;
+                logro = logro->prox;
+            }
+            cout<<"========================================="<<endl;
+        }
+        aux = aux->prox;
+    }
 }
 
 // Simulador de juego
@@ -395,7 +566,7 @@ void AdivinaElNumero(Jugador **perfiles){
         }
         aux = aux->prox;
     }
-    
+
     system("cls");
     cout<<"Bienvenido a Adivina el Numero"<<endl;
     cout<<"---------------------------------------------------------"<<endl;
@@ -436,15 +607,16 @@ void AdivinaElNumero(Jugador **perfiles){
                     victorias += 1;
                     if(i == 0){
                         saldo += 1.50;
+                        PuntuacionJugador(perfiles, victorias, derrotas, saldo);
+                        verificarMisiones(perfiles);
                     }
-                    PuntuacionJugador(perfiles, victorias, derrotas, saldo);
                     ganado = true;
                     break;
-                } 
+                }
                 else{
                     if(num > adivinar){
                         cout<< "El numero es menor"<<endl;
-                    } 
+                    }
                     else{
                         cout<< "El numero es mayor"<<endl;
                     }
@@ -458,8 +630,33 @@ void AdivinaElNumero(Jugador **perfiles){
                 cout<<"El numero era: "<<adivinar<<endl;
                 derrotas += 1;
                 PuntuacionJugador(perfiles, victorias, derrotas, saldo);
+                verificarMisiones(perfiles);
             }
         }
 
     }while(op != 0);
+}
+// Liberar memoria
+void LiberarMemoriaJugadores(Jugador *perfiles) {
+    while (perfiles != nullptr) {
+        Jugador *aux = perfiles;
+        perfiles = perfiles->prox;
+
+        LogroObtenido *logro = aux->logros_obtenidos;
+        while (logro) {
+            LogroObtenido *tmp = logro;
+            logro = logro->prox;
+            delete tmp;
+        }
+
+        delete aux;
+    }
+}
+
+void LiberarMemoriaMisiones(Mision *misiones) {
+    while (misiones != nullptr) {
+        Mision *aux = misiones;
+        misiones = misiones->prox;
+        delete aux;
+    }
 }
