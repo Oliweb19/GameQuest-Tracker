@@ -45,6 +45,9 @@ main(){
                                     case 1:
                                         AdivinaElNumero(&perfiles);
                                         break;
+                                    case 2:
+                                        mostrarMisiones();
+                                        break;
                                     case 3:
                                         ranking = Ranking(perfiles);
                                         ImprimirRanking(ranking);
@@ -89,7 +92,4 @@ main(){
                 break;
         }
     }
-
-
-    
 }
