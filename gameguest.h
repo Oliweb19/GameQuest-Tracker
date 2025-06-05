@@ -17,12 +17,9 @@ using namespace std;
 
 // Estructuras de Datos
 
-const int MAX_MISIONES = 10;
-
 // Estructura para almacenar información sobre logros obtenidos
 struct LogroObtenido {
     string titulo;
-    string descripcion_detallada;
     string fecha_obtencion;
     LogroObtenido *prox;
 };
@@ -39,7 +36,6 @@ struct Jugador{
     float saldo;
     char privilegio;
 
-    bool misiones_completadas[MAX_MISIONES]{};
     LogroObtenido *logros_obtenidos = nullptr;
     Jugador *prox;
 };
@@ -58,9 +54,6 @@ int id_logueo = -1; //-1 porque ningun usuario esta logueado al inicio
 mt19937 globalGenerador(chrono::system_clock::now().time_since_epoch().count());
 Mision *lista_misiones = nullptr; // Cabeza de la lista enlazada de misiones
 
-string misiones_titulos[MAX_MISIONES]; //guarda el nombre de las misiones
-int cant_misiones = 0;
-
 // VER ESTO!!
 string obtenerFechaHoy() {
     time_t t = time(nullptr);
@@ -71,16 +64,32 @@ string obtenerFechaHoy() {
 }
 
 // --- AGREGA LOGRO A LA LISTA DE LOGROS OBTENIDOS ---
-void agregarLogroObtenido(Jugador *jugador, const string& titulo, const string& descripcion) {
+
+bool TieneLogro(Jugador *jugador, const string &titulo_buscado) {
+    LogroObtenido *aux = jugador->logros_obtenidos;
+    while(aux){
+        if (aux->titulo == titulo_buscado) {
+            return true;
+        }
+        aux = aux->prox;
+    }
+    return false;
+}
+
+void agregarLogroObtenido(Jugador *jugador, const string &titulo) {
+    if (TieneLogro(jugador, titulo)) {
+        return;
+    }
+
     LogroObtenido *nuevo = new LogroObtenido;
     nuevo->titulo = titulo;
-    nuevo->descripcion_detallada = descripcion;
     nuevo->fecha_obtencion = obtenerFechaHoy();
     nuevo->prox = nullptr;
 
     if (!jugador->logros_obtenidos) { //Si el jugador NO tiene logros aún ese será el primero.
         jugador->logros_obtenidos = nuevo;
-    } else {
+    } 
+    else {
         LogroObtenido *aux = jugador->logros_obtenidos;
         while (aux->prox) aux = aux->prox;
         aux->prox = nuevo;
@@ -108,69 +117,60 @@ void insertarMision(Mision **lista, string titulo, string descripcion, string re
         }
         temp->prox = nuevo;
     }
-    if (cant_misiones < MAX_MISIONES) {  //Verifica que no exceda el maximo de misiones!!!
-        misiones_titulos[cant_misiones++] = titulo;
-    }
 }
 
 void inicializarMisiones() {
-    insertarMision(&lista_misiones, "Primer Acierto", "Adivina el número a la primera.", "Adivinar a la primera", 2);
-    insertarMision(&lista_misiones, "Tres Victorias", "Gana tres partidas.", "Alcanzar 3 victorias", 5);
-    insertarMision(&lista_misiones, "Jugador Persistente", "Juega 5 partidas.", "Jugar 5 partidas", 3);
+    insertarMision(&lista_misiones, "¿La primera es la vencida?", "Adivina el número a la primera.", "Adivinar a la primera", 2);
+    insertarMision(&lista_misiones, "Gana dinero extra", "Gana tres partidas.", "Alcanzar 3 victorias", 5);
+    insertarMision(&lista_misiones, "Jugador Constante", "Juega 5 partidas.", "Jugar 5 partidas", 3);
 }
 
 // Busca el índice de una misión por su título en el arreglo. Si no existe, devuelve -1.
-int buscarIndiceMision(string buscado) {
-    for (int i = 0; i < cant_misiones; i++) {
-        if (misiones_titulos[i] == buscado) {
-            return i; // Si lo encuentra devuelve la posición
+Mision *buscarMisionPorTitulo(const string& buscado) {
+    Mision* actual = lista_misiones;
+    while (actual != nullptr) {
+        if (actual->titulo == buscado) {
+            return actual;
         }
+        actual = actual->prox;
     }
-    return -1; // Si no lo encuentra, devuelve -1
+    return nullptr;
 }
 
 void verificarMisiones(Jugador **perfiles) {
     Jugador *jugador_actual = nullptr;
-    Jugador *aux_jugador = *perfiles; //recorrer lista de jugadores desde el inicio
+    Jugador *aux_jugador = *perfiles;
     while (aux_jugador != nullptr) {
-        if (aux_jugador->id_Jugador == id_logueo) { //compara el id de cada jugador con el id del usuario logueado
+        if (aux_jugador->id_Jugador == id_logueo) {
             jugador_actual = aux_jugador;
             break;
         }
         aux_jugador = aux_jugador->prox;
     }
 
-    if (jugador_actual) { //solo entra al bloque si se encontro al jugador logueado y lo tengo guardado en jugador actual
-        Mision *mision_actual = lista_misiones; //recorrer lista de misiones
-        int posicion_mision = 0;
-        while (mision_actual != nullptr) { //recorre todas las misiones
+    if (jugador_actual) {
+        Mision *mision_actual = lista_misiones;
+        while (mision_actual != nullptr) {
             bool cumplida = false;
-            if (mision_actual->titulo == "Primer Acierto" && jugador_actual->partidas_jugadas >= 1 && jugador_actual->victorias >= 1) {
+            if (mision_actual->titulo == "Gana dinero extra" && jugador_actual->victorias >= 3) {
                 cumplida = true;
-            } else if (mision_actual->titulo == "Tres Victorias" && jugador_actual->victorias >= 3) {
-                cumplida = true;
-            } else if (mision_actual->titulo == "Jugador Persistente" && jugador_actual->partidas_jugadas >= 5) {
+            } else if (mision_actual->titulo == "Jugador Constante" && jugador_actual->partidas_jugadas >= 5) {
                 cumplida = true;
             }
 
-            // Si cumplida y no la había completado
-            int indice = buscarIndiceMision(mision_actual->titulo); //cada jugador tiene un arreglo de booleanos (misiones_completadas) donde cada posición indica si esa misión está completada para ese jugador.
-            if (cumplida && indice != -1 && !jugador_actual->misiones_completadas[indice]) { //Si el índice es -1, significa que el título de la misión actual NO está en el arreglo de títulos de misiones.
+            // Si cumplida y NO la había completado (usando la lista de logros)
+            if (cumplida && !TieneLogro(jugador_actual, mision_actual->titulo)) {
                 cout << "\n¡Misión Cumplida! '" << mision_actual->titulo << "': +" << mision_actual->saldo_otorgado << " saldo." << endl;
                 cout << "Descripción: " << mision_actual->descripcion << endl;
-                jugador_actual->saldo += mision_actual->saldo_otorgado; //suma la recompensa de la mision al saldo del jugador
-                jugador_actual->misiones_completadas[indice] = true;
+                jugador_actual->saldo += mision_actual->saldo_otorgado;
 
-                // NUEVO: Agregar logro con descripción detallada y fecha
-                string descripcion_detallada = "Has superado la misión '" + mision_actual->titulo + "'. " + mision_actual->descripcion +
-                                               " Requisito: " + mision_actual->requisitos + ".";
-                agregarLogroObtenido(jugador_actual, mision_actual->titulo, descripcion_detallada);
+                // Ahora agregamos la misión como un logro obtenido
+                agregarLogroObtenido(jugador_actual, mision_actual->titulo);
             }
             mision_actual = mision_actual->prox;
-            posicion_mision++;
         }
 
-        // Subida de nivel
+        // Subida de nivel (esto no cambia)
         if (jugador_actual->victorias > 5 && jugador_actual->privilegio == 'u') {
             cout << "\n¡Felicidades! Has subido de nivel." << endl;
             jugador_actual->privilegio = 'a';
@@ -179,8 +179,9 @@ void verificarMisiones(Jugador **perfiles) {
 }
 
 void mostrarMisiones() {
-    cout << "\n--- Misiones Disponibles ---" << endl;
     Mision *mision_actual = lista_misiones;
+
+    cout << "\n--- Misiones Disponibles ---" << endl;
     if (!mision_actual) {
         cout << "No hay misiones disponibles por ahora." << endl;
         return;
@@ -320,9 +321,7 @@ Jugador *CrearNodoJugador(int id_Jugador, string nombre, string alias, int ano, 
     nuevo->saldo = saldo;
     nuevo->privilegio = 'u';
 
-    for (int i = 0; i < MAX_MISIONES; i++) nuevo->misiones_completadas[i] = false;
     nuevo->logros_obtenidos = nullptr;
-
     nuevo->prox = NULL;
 
     return nuevo;
@@ -520,7 +519,7 @@ void PerfilJugador(Jugador *perfiles){
                 cout << "  Ningún logro obtenido aún." << endl;
             }
             while (logro) {
-                cout << "- " << logro->titulo << " (" << logro->fecha_obtencion << "): " << logro->descripcion_detallada << endl;
+                cout << "- " << logro->titulo << " (" << logro->fecha_obtencion << ")" <<endl;
                 logro = logro->prox;
             }
             cout<<"========================================="<<endl;
@@ -607,8 +606,7 @@ void AdivinaElNumero(Jugador **perfiles){
                     victorias += 1;
                     if(i == 0){
                         saldo += 1.50;
-                        PuntuacionJugador(perfiles, victorias, derrotas, saldo);
-                        verificarMisiones(perfiles);
+                        agregarLogroObtenido(*perfiles, "¿La primera es la vencida?");
                     }
                     ganado = true;
                     break;
@@ -629,9 +627,9 @@ void AdivinaElNumero(Jugador **perfiles){
                 cout<<"Perdiste :("<<endl;
                 cout<<"El numero era: "<<adivinar<<endl;
                 derrotas += 1;
-                PuntuacionJugador(perfiles, victorias, derrotas, saldo);
-                verificarMisiones(perfiles);
             }
+            PuntuacionJugador(perfiles, victorias, derrotas, saldo);
+            verificarMisiones(perfiles);
         }
 
     }while(op != 0);
