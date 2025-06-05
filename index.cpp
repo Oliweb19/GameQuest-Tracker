@@ -7,6 +7,7 @@ main(){
     int op = 1, opu;
     char priv;
     bool logueo;
+    inicializarMisiones();
 
     while(op != 0){
         system("cls");
