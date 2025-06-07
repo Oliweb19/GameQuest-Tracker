@@ -4,7 +4,7 @@ main(){
     SetConsoleOutputCP(CP_UTF8); // Sirve para imprimir caracteres especiales en la consola
 
     Jugador *perfiles = nullptr, *aux, *ranking = nullptr;
-    int op = 1, opu;
+    int op = 1, opu, opj;
     char priv;
     bool logueo;
     inicializarMisiones();
@@ -38,6 +38,7 @@ main(){
                         if(priv == 'u'){
                             opu = 1;
                             while(opu != 0){
+                                system("cls");
                                 MenuUsuario(perfiles);
                                 cout<< "Ingrese una opcion: ";
                                 cin>> opu;
@@ -48,13 +49,40 @@ main(){
                                         break;
                                     case 2:
                                         mostrarMisiones();
+                                        system("pause");
                                         break;
                                     case 3:
                                         ranking = Ranking(perfiles);
                                         ImprimirRanking(ranking);
+                                        system("pause");
                                         break;
                                     case 4:
-                                        PerfilJugador(perfiles);
+                                        opj = 1;
+                                        while(opj != 0){
+                                            system("cls");
+                                            PerfilJugador(perfiles);
+
+                                            MenuModificar();
+                                            cout<< "Ingrese una opcion: ";
+                                            cin>> opj;
+
+                                            switch (opj){
+                                                case 1:
+                                                    ModificarNombre(&perfiles);
+                                                    break;
+                                                case 2:
+                                                    ModificarContrasena(&perfiles);
+                                                    break;
+                                                case 0:
+                                                    cout<<"Saliendo..."<<endl;
+                                                    break;
+                                                
+                                                default:
+                                                    cout<< "Opcion Invalida, ingrese una opcion valida"<<endl;
+                                                    break;
+                                            }
+                                        }
+                                        system("pause");
                                         break;
                                     case 0:
                                         cout<<"Saliendo..."<<endl;
@@ -62,6 +90,7 @@ main(){
                                     
                                     default:
                                         cout<< "Opcion Invalida, ingrese una opcion valida"<<endl;
+                                        system("pause");
                                         break;
                                 }
                             }
@@ -75,12 +104,6 @@ main(){
             case 2:
                 system("cls");
                 AgregarJugador(&perfiles);
-                system("pause");
-                break;
-            case 3: // Lo estoy usando para ver los perfiles despues de que juego.
-                system("cls");
-                //ImprimirJugadores(perfiles);
-                ImprimirRanking(perfiles);
                 system("pause");
                 break;
             case 0:
