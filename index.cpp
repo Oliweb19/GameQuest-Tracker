@@ -1,3 +1,5 @@
+// Hecho por: Paula Velazquez C.I: 31460243 y Oliver Guillen C.I: 31047247
+
 #include "gameguest.h"
 
 main(){
