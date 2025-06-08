@@ -1,3 +1,5 @@
+// Hecho por: Paula Velazquez C.I: 31460243 y Oliver Guillen C.I: 31047247
+
 #include <iostream>
 #include <string>
 #include <random>
@@ -6,14 +8,6 @@
 #include <ctime> // Para fecha actual
 
 using namespace std;
-
-/*
--Si el usuario tiene mas de 5 vic sube de nivel
-- por cada fallo se le quita 0.50
-- y si adivina a la primera 1.50 (son 3 intentos)
-- Verificar que no exita el mismo alias a la hora de registrar
-- Verificar que el nombre no tenga numero
-*/
 
 // Estructuras de Datos
 
@@ -641,7 +635,9 @@ void AdivinaElNumero(Jugador **perfiles){
                     if(i == 0){
                         jugador_actual->saldo += 1.50;
                         jugador_actual->saldo += 2;
-                        agregarLogroObtenido(jugador_actual, "¿La primera es la vencida?"); 
+
+                        agregarLogroObtenido(jugador_actual, "¿La primera es la vencida?");
+                        verificarMisiones(perfiles);
                     }
 
                     ganado = true;
@@ -668,10 +664,9 @@ void AdivinaElNumero(Jugador **perfiles){
             if(!ganado){
                 cout<<"Perdiste :("<<endl;
                 cout<<"El numero era: "<<adivinar<<endl;
+
                 jugador_actual->derrotas += 1;
             }
-            
-            jugador_actual->partidas_jugadas += 1;
 
             PuntuacionJugador(perfiles, jugador_actual->victorias, jugador_actual->derrotas, jugador_actual->saldo);
             verificarMisiones(perfiles);
