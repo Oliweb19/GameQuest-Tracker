@@ -6,13 +6,14 @@ main(){
     SetConsoleOutputCP(CP_UTF8); // Sirve para imprimir caracteres especiales en la consola
 
     Jugador *perfiles = nullptr, *aux, *ranking = nullptr;
-    int op = 1, opu, opj;
+    int op = 1, opu, opa, opj;
     char priv;
     bool logueo;
     inicializarMisiones();
 
     while(op != 0){
         system("cls");
+        Logo();
         MenuLogueo();
         cout<< "Ingrese una opcion: ";
         cin>> op;
@@ -20,6 +21,7 @@ main(){
         switch (op){
             case 1:
                 system("cls");
+                Logo();
                 logueo = false;
                 while (!logueo){
                     logueo = IniciarSesion(perfiles);
@@ -99,12 +101,43 @@ main(){
 
 
                         }
+                        else{
+                            opa = 1;
+                            while(opa != 0){
+                                system("cls");
+                                MenuAdmin(perfiles);
+                                cout<< "Ingrese una opcion: ";
+                                cin>> opa;
+
+                                switch (opa){
+                                    case 1:
+                                        system("cls");
+                                        AgregarJugador(&perfiles);
+                                        system("pause");
+                                        break;
+                                    case 2:
+                                        system("cls");
+                                        ImprimirJugadores(perfiles);
+                                        system("pause");
+                                        break;
+                                    
+                                    case 0:
+                                        cout<<"Saliendo..."<<endl;
+                                        break;
+                                    default:
+                                        cout<< "Opcion Invalida, ingrese una opcion valida"<<endl;
+                                        system("pause");
+                                        break;
+                                }
+                            }
+                        }
                     }
                 }
                 system("pause");
                 break;
             case 2:
                 system("cls");
+                Logo();
                 AgregarJugador(&perfiles);
                 system("pause");
                 break;
