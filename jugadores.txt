@@ -1,0 +1,8 @@
+// Posiblemente se haga asi
+1|Juan Perez|JP1|pass123|2020|10|5|15|100.50|A
+Primer Victoria|2023-01-15
+Campeon Novato|2023-03-20
+---
+2|Ana Garcia|AG2|securepwd|2021|8|2|10|75.25|B
+Primera Partida|2024-02-10
+---
