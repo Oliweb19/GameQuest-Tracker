@@ -47,6 +47,20 @@ int id_logueo;
 mt19937 globalGenerador(chrono::system_clock::now().time_since_epoch().count());
 Mision *lista_misiones = nullptr; // Cabeza de la lista enlazada de misiones
 
+// LOGO
+
+void Logo(){
+    string logo =
+        "████████╗██╗   ██╗  ██████╗ █████╗ ███████╗██╗███╗   ██╗ ██████╗ \n"
+        "╚══██╔══╝██║   ██║ ██╔════╝██╔══██╗██╔════╝██║████╗  ██║██╔═  ██╗\n"
+        "   ██║   ██║   ██║ ██║     ███████║███████╗██║██╔██╗ ██║██║   ██║\n"
+        "   ██║   ██║   ██║ ██║     ██╔══██║╚════██║██║██║╚██╗██║██║   ██║\n"
+        "   ██║   ╚██████╔╝ ╚██████╗██║  ██║███████║██║██║ ╚████║╚██████╔╝\n"
+        "   ╚═╝    ╚═════╝   ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝╚═╝  ╚═══╝ ╚═════╝ ";
+
+    cout << logo << endl;
+}
+
 // --- AGREGA LOGRO A LA LISTA DE LOGROS OBTENIDOS ---
 
 bool TieneLogro(Jugador *jugador, const string &titulo_buscado) {
@@ -111,7 +125,7 @@ void insertarMision(Mision **lista, string titulo, string descripcion, string re
     }
 }
 
-void inicializarMisiones() {
+void inicializarMisiones() { // Con los archivos esto se va!!
     insertarMision(&lista_misiones, "¿La primera es la vencida?", "Adivina el número a la primera.", "Adivinar a la primera", 2);
     insertarMision(&lista_misiones, "Gana dinero extra", "Gana tres partidas.", "Alcanzar 3 victorias", 5);
     insertarMision(&lista_misiones, "Jugador Constante", "Juega 5 partidas.", "Jugar 5 partidas", 3);
@@ -187,7 +201,7 @@ bool Vacio(Jugador *lista){
 }
 
 void MenuLogueo(){
-    cout<< "Bienvenido a GameQuest Tracker"<<endl;
+    cout<< "Bienvenido a Tu Casino"<<endl;
     cout<<"1. Iniciar Sesion"<<endl;
     cout<<"2. Registrarse"<<endl;
     cout<<"0. Salir"<<endl;
@@ -314,7 +328,7 @@ Jugador *CrearNodoJugador(int id_Jugador, string nombre, string alias, int ano, 
     nuevo->derrotas = 0;
     nuevo->partidas_jugadas = 0;
     nuevo->saldo = saldo;
-    nuevo->privilegio = 'u';
+    nuevo->privilegio = 'a';
 
     nuevo->logros_obtenidos = nullptr;
     nuevo->prox = NULL;
@@ -364,36 +378,6 @@ void AgregarJugador(Jugador **perfiles) {
     ano = ValidarEdad();
 
     InsertarJugador(perfiles, id, nombre, alias, ano, contrasena);
-}
-
-void ImprimirJugadores(Jugador *perfiles) {
-    Jugador *aux = perfiles;
-
-    cout<< "----------------------------------------------------"<<endl;
-    if(Vacio(perfiles)){
-        cout << "No hay datos del Jugador." << endl;
-        return;
-    }
-    while (aux != nullptr) {
-        cout << "ID: " << aux->id_Jugador << endl;
-        cout << "Nombre: " << aux->nombre << endl;
-        cout << "Alias: " << aux->alias << endl;
-        cout << "Contrasena: " << aux->contrasena << endl;
-        cout << "Año de nacimiento: " << aux->ano << endl;
-        cout << "Victorias: " << aux->victorias << endl;
-        cout << "Derrotas: " << aux->derrotas << endl;
-        cout << "Partidas jugadas: " << aux->partidas_jugadas << endl;
-        cout << "Saldo: " << aux->saldo << endl;
-        if(aux->privilegio == 'u'){
-            cout << "Privilegio de Usuarios" << endl;
-        }
-        else{
-            cout << "Privilegio de Admin" << endl;
-        }
-        cout<< "----------------------------------------------------"<<endl;
-        aux = aux->prox;
-    }
-
 }
 
 bool IniciarSesion(Jugador *perfiles){
@@ -594,12 +578,13 @@ void AdivinaElNumero(Jugador **perfiles){
 
     system("cls");
     cout<<"Bienvenido a Adivina el Numero"<<endl;
-    cout<<"---------------------------------------------------------"<<endl;
+    cout<<"--------------------------------------------------------------------"<<endl;
     cout<<"Reglas: "<<endl;
     cout<<"1. Tendras 3 intentos para adivinar un numero del 1 al 10"<<endl;
     cout<<"2. Por cada intento fallido te quitaremos 0.50 bs"<<endl;
     cout<<"3. Pero si adivinas a la primera te ganaras 1.50 bs"<<endl;
-    cout<<"---------------------------------------------------------"<<endl;
+    cout<<"4. Si ganas despues del primer intento se te suma 0.50 bs a tu saldo"<<endl;
+    cout<<"--------------------------------------------------------------------"<<endl;
 
     do{
         cout<<"\nQuieres Jugar?"<<endl;
@@ -609,6 +594,7 @@ void AdivinaElNumero(Jugador **perfiles){
         cin>> op;
 
         if(op == 1){
+            system("cls");
             adivinar = generarNumeroAleatorioOptimizada(1, 10);
             int i = 0;
             bool ganado = false;
@@ -617,19 +603,24 @@ void AdivinaElNumero(Jugador **perfiles){
                 cout<<"-------------------------------"<<endl;
                 cout<<"Tu Saldo es: "<<jugador_actual->saldo<<endl;
                 cout<<"-------------------------------"<<endl;
-                cout<< "Ingrese el numero a adivinar: ";
-                cin >> num;
+                do {
+                    cout << "Ingrese el numero a adivinar: ";
+                    cin >> num;
 
-                // Validar que no ingrese letras
-                if(cin.fail()){
-                    cin.clear();
-                    cin.ignore(1000, '\n');
-                    cout << "Entrada invalida. Intente de nuevo." << endl;
-                    continue;
-                }
+                    if (cin.fail()) {
+                        cin.clear();
+                        cin.ignore(1000, '\n');
+                        cout << "Entrada invalida. Intente de nuevo." << endl;
+                        continue;
+                    }
+
+                    if (num < 1 || num > 10) {
+                        cout << "El intervalo para adivinar es del 1 al 10" << endl;
+                    }
+                } while (num < 1 || num > 10);
 
                 if(num == adivinar){
-                    cout<< "Ganaste!!" << endl;
+                    cout<< "Ganastes!!" << endl;
                     jugador_actual->victorias += 1;
 
                     if(i == 0){
@@ -639,7 +630,8 @@ void AdivinaElNumero(Jugador **perfiles){
                         agregarLogroObtenido(jugador_actual, "¿La primera es la vencida?");
                         verificarMisiones(perfiles);
                     }
-
+                    
+                    jugador_actual->saldo += 0.50;
                     ganado = true;
                     break;
                 }
@@ -674,6 +666,53 @@ void AdivinaElNumero(Jugador **perfiles){
 
     }while(op != 0);
 }
+
+// Admin
+
+void MenuAdmin(Jugador *perfiles){
+    Jugador *aux;
+    string nombre;
+
+    aux = perfiles;
+    while(aux != nullptr){
+        if(aux->id_Jugador == id_logueo){
+            nombre = aux->nombre;
+        }
+        aux = aux->prox;
+    }
+
+    cout<< "Hola admin, "<<nombre<<" elije una opcion: "<<endl;
+    cout<<"1. Agregar un Jugador"<<endl;
+    cout<<"2. Ver Jugadores"<<endl;
+    cout<<"3. Eliminar Jugador"<<endl;
+    cout<<"4. Agregar una Mision"<<endl;
+    cout<<"5. Ver Mision"<<endl;
+    cout<<"6. Eliminar Mision"<<endl;
+    cout<<"7. Top 3 Mejores Jugadores"<<endl;
+    cout<<"8. Top 5 de Jugadores con mas partidas"<<endl;
+    cout<<"0. Cerrar Sesion"<<endl;
+}
+
+void ImprimirJugadores(Jugador *perfiles){
+    Jugador *perfil = perfiles;
+
+    cout<<"\t\tTABLA DE JUGADORES"<<endl;
+    cout<<"=================================================" << endl;
+    cout<<"\tID|    Alias     | PJ | V | D | BS "<<endl;
+    cout<<"\t-----------------------------------"<<endl;
+    while (perfil != nullptr){
+        cout<<"\t"<< perfil->id_Jugador << espaciar(to_string(perfil->id_Jugador).size(), 7)
+            << perfil->alias << espaciar(perfil->alias.size(), 13)
+            << perfil->partidas_jugadas << espaciar(to_string(perfil->partidas_jugadas).size(), 4)
+            << perfil->victorias << espaciar(to_string(perfil->victorias).size(), 4)
+            << perfil->derrotas << espaciar(to_string(perfil->derrotas).size(), 4)
+            << perfil->saldo << endl;
+        cout<<"\t------------------------------------"<<endl;
+        perfil = perfil->prox;
+    }
+    cout<<"=================================================" << endl;
+}
+
 
 // Liberar memoria
 void LiberarMemoriaJugadores(Jugador *perfiles) {
