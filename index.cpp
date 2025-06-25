@@ -10,6 +10,7 @@ main(){
     char priv;
     bool logueo;
     inicializarMisiones();
+    CargarJugadoresDesdeArchivo(&perfiles, "C:/Users/User/Desktop/Oliver/Proyecto/GameQuest-Tracker/jugadores.txt");
 
     while(op != 0){
         system("cls");
@@ -17,6 +18,8 @@ main(){
         MenuLogueo();
         cout<< "Ingrese una opcion: ";
         cin>> op;
+
+        
 
         switch (op){
             case 1:
@@ -90,6 +93,7 @@ main(){
                                         break;
                                     case 0:
                                         cout<<"Saliendo..."<<endl;
+                                        GuardarJugadoresEnArchivo(perfiles, "C:/Users/User/Desktop/Oliver/Proyecto/GameQuest-Tracker/jugadores.txt");
                                         break;
                                     
                                     default:
@@ -120,9 +124,14 @@ main(){
                                         ImprimirJugadores(perfiles);
                                         system("pause");
                                         break;
+                                    case 3:
+                                        EliminarJugador(&perfiles);
+                                        system("pause");
+                                        break;
                                     
                                     case 0:
                                         cout<<"Saliendo..."<<endl;
+                                        GuardarJugadoresEnArchivo(perfiles, "C:/Users/User/Desktop/Oliver/Proyecto/GameQuest-Tracker/jugadores.txt");
                                         break;
                                     default:
                                         cout<< "Opcion Invalida, ingrese una opcion valida"<<endl;
@@ -143,6 +152,7 @@ main(){
                 break;
             case 0:
                 cout<<"Saliendo..."<<endl;
+                GuardarJugadoresEnArchivo(perfiles, "C:/Users/User/Desktop/Oliver/Proyecto/GameQuest-Tracker/jugadores.txt");
                 break;
             
             default:
