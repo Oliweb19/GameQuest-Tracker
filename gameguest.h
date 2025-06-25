@@ -6,6 +6,9 @@
 #include <chrono>
 #include <windows.h>
 #include <ctime> // Para fecha actual
+#include <fstream>
+#include <sstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -328,7 +331,7 @@ Jugador *CrearNodoJugador(int id_Jugador, string nombre, string alias, int ano, 
     nuevo->derrotas = 0;
     nuevo->partidas_jugadas = 0;
     nuevo->saldo = saldo;
-    nuevo->privilegio = 'a';
+    nuevo->privilegio = 'u';
 
     nuevo->logros_obtenidos = nullptr;
     nuevo->prox = NULL;
@@ -701,18 +704,201 @@ void ImprimirJugadores(Jugador *perfiles){
     cout<<"\tID|    Alias     | PJ | V | D | BS "<<endl;
     cout<<"\t-----------------------------------"<<endl;
     while (perfil != nullptr){
-        cout<<"\t"<< perfil->id_Jugador << espaciar(to_string(perfil->id_Jugador).size(), 7)
+        if(perfil->privilegio == 'u'){
+            cout<<"\t"<< perfil->id_Jugador << espaciar(to_string(perfil->id_Jugador).size(), 7)
             << perfil->alias << espaciar(perfil->alias.size(), 13)
             << perfil->partidas_jugadas << espaciar(to_string(perfil->partidas_jugadas).size(), 4)
             << perfil->victorias << espaciar(to_string(perfil->victorias).size(), 4)
             << perfil->derrotas << espaciar(to_string(perfil->derrotas).size(), 4)
             << perfil->saldo << endl;
-        cout<<"\t------------------------------------"<<endl;
+            cout<<"\t------------------------------------"<<endl;
+        }
         perfil = perfil->prox;
     }
     cout<<"=================================================" << endl;
 }
+void EliminarJugador(Jugador **perfiles){
+    Jugador *temp = *perfiles, *anterior = nullptr;
+    int id_eliminar;
 
+    system("cls");
+    cout << "\nEliminar Jugador" << endl;
+    cout << "=========================================" << endl;
+    cout << "Ingrese el ID del jugador a eliminar: ";
+    cin >> id_eliminar;
+
+    if (*perfiles == nullptr) {
+        cout << "No hay jugadores para eliminar." << endl;
+        return;
+    }
+    while (temp != nullptr) {
+        if (temp->id_Jugador == id_eliminar) {
+            if (anterior == nullptr) {
+                *perfiles = temp->prox;
+            } else {
+                anterior->prox = temp->prox;
+            }
+
+            
+            LogroObtenido *LogroActual = temp->logros_obtenidos;
+            while (LogroActual != nullptr) {
+                LogroObtenido *logroaEliminar = LogroActual;
+                LogroActual = LogroActual->prox;
+                delete logroaEliminar;
+            }
+
+            delete temp;
+            cout << "El jugador con ID " << id_eliminar << " se eliminó con éxito " << endl;
+            return; 
+        }
+        anterior = temp;
+        temp = temp->prox;
+    }
+    cout << "Jugador con ID " << id_eliminar << " no encontrado " << endl;
+}
+
+void CargarJugadoresDesdeArchivo(Jugador **perfiles, const string &filename) {
+    ifstream archivo(filename);
+    int id_Jugador, ano, victorias, derrotas, partidas_jugadas;
+    string nombre, alias, contrasena, line;
+    float saldo;
+    char privilegio;
+
+    if (archivo.is_open()) {
+        while (getline(archivo, line)) {
+            if (line.empty()){
+                continue;
+            }
+            if (line == "---") {
+                continue;
+            }
+
+            stringstream ss(line);
+            string segmento;
+
+            getline(ss, segmento, '|');
+            id_Jugador = stoi(segmento);
+            
+            getline(ss, nombre, '|');
+
+            getline(ss, alias, '|');
+
+            getline(ss, contrasena, '|');
+
+            getline(ss, segmento, '|');
+            ano = stoi(segmento);
+
+            getline(ss, segmento, '|');
+            victorias = stoi(segmento);
+
+            getline(ss, segmento, '|');
+            derrotas = stoi(segmento);
+
+            getline(ss, segmento, '|');
+            partidas_jugadas = stoi(segmento);
+
+            getline(ss, segmento, '|');
+            saldo = stof(segmento);
+
+            getline(ss, segmento, '|');
+            privilegio = segmento[0];
+
+            // Creo nuevo nodo
+            Jugador *nuevoJugador = new Jugador;
+            nuevoJugador->id_Jugador = id_Jugador;
+            nuevoJugador->nombre = nombre;
+            nuevoJugador->alias = alias;
+            nuevoJugador->contrasena = contrasena;
+            nuevoJugador->ano = ano;
+            nuevoJugador->victorias = victorias;
+            nuevoJugador->derrotas = derrotas;
+            nuevoJugador->partidas_jugadas = partidas_jugadas;
+            nuevoJugador->saldo = saldo;
+            nuevoJugador->privilegio = privilegio;
+            nuevoJugador->logros_obtenidos = nullptr;
+            nuevoJugador->prox = nullptr;
+
+            // Agrego a la lista
+            if (*perfiles == nullptr) {
+                *perfiles = nuevoJugador;
+            } else {
+                Jugador *aux = *perfiles;
+                while (aux->prox != nullptr) {
+                    aux = aux->prox;
+                }
+                aux->prox = nuevoJugador;
+            }
+
+            while (getline(archivo, line) && line != "---") {
+                if (line.empty()) {
+                    continue;
+                }
+                
+                size_t pos = line.find('|');
+                if (pos != string::npos) {
+                    string titulo_logro = line.substr(0, pos);
+                    string fecha_obtencion_logro = line.substr(pos + 1);
+
+                    LogroObtenido *nuevoLogro = new LogroObtenido;
+                    nuevoLogro->titulo = titulo_logro;
+                    nuevoLogro->fecha_obtencion = fecha_obtencion_logro;
+                    nuevoLogro->prox = nullptr;
+
+                    if (nuevoJugador->logros_obtenidos == nullptr) {
+                        nuevoJugador->logros_obtenidos = nuevoLogro;
+                    } else {
+                        LogroObtenido *auxLogro = nuevoJugador->logros_obtenidos;
+                        while (auxLogro->prox != nullptr) {
+                            auxLogro = auxLogro->prox;
+                        }
+                        auxLogro->prox = nuevoLogro;
+                    }
+                }
+            }
+        }
+        archivo.close();
+    } 
+    else{
+        cout << "No se pudo abrir el archivo '" << filename << "' para lectura." << endl;
+    }
+}
+
+void GuardarJugadoresEnArchivo(Jugador *perfiles, const string &filename) {
+    ofstream archivo(filename);
+    Jugador *currentJugador = perfiles;
+
+    if (archivo.is_open()) {
+        while (currentJugador != nullptr) {
+            archivo << currentJugador->id_Jugador << "|"
+                    << currentJugador->nombre << "|"
+                    << currentJugador->alias << "|"
+                    << currentJugador->contrasena << "|"
+                    << currentJugador->ano << "|"
+                    << currentJugador->victorias << "|"
+                    << currentJugador->derrotas << "|"
+                    << currentJugador->partidas_jugadas << "|"
+                    << fixed << setprecision(2) << currentJugador->saldo << "|"
+                    << currentJugador->privilegio << endl;
+
+            LogroObtenido *currentLogro = currentJugador->logros_obtenidos;
+            while (currentLogro != nullptr) {
+                
+                archivo << currentLogro->titulo << "|"
+                        << currentLogro->fecha_obtencion << endl;
+                currentLogro = currentLogro->prox;
+            }
+
+            if (currentJugador->prox != nullptr || currentJugador->logros_obtenidos != nullptr) {
+                archivo << "---" << endl;
+            }
+            
+            currentJugador = currentJugador->prox;
+        }
+        archivo.close();
+    } else {
+        cout << "No se pudo abrir el archivo '" << filename << "' para escritura." << endl;
+    }
+}
 
 // Liberar memoria
 void LiberarMemoriaJugadores(Jugador *perfiles) {
