@@ -10,7 +10,6 @@ main(){
     int op = 1, opu, opa, opj;
     char priv;
     bool logueo;
-    //inicializarMisiones();
     CargarJugadoresDesdeArchivo(&perfiles, "C:/Users/User/Desktop/Oliver/Proyecto/GameQuest-Tracker/jugadores.txt");
     CargarMisionesDesdeArchivo(&misiones, "C:/Users/User/Desktop/Oliver/Proyecto/GameQuest-Tracker/misiones.txt");
 
