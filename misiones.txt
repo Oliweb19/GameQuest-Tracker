@@ -1,0 +1,7 @@
+La primera es la vencida?|Adivina el numero a la primera|Adivinar a la primera|0|0|2.00
+---
+Gana dinero extra|Gana 5 partidas |Alcanzar 5 partidas|v|5|15.00
+---
+Jugador Constante|Juega 5 partidas|Alcanzar 5 partidas jugadas|p|5|8.00
+---
+Motivacion para jugar|Motivate a seguir jugando con nosotros|Alcanza 15 derrotas|d|15|35.60
