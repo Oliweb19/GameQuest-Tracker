@@ -8,7 +8,7 @@
 #include <ctime> // Para fecha actual
 #include <fstream>
 #include <sstream>
-#include <iomanip>
+#include <iomanip> // Para setprecision
 
 using namespace std;
 
@@ -40,8 +40,6 @@ struct Mision {
     string titulo;
     string descripcion;
     string requisitos;
-    char clase;
-    int cantidad;
     float saldo_otorgado;
     Mision *prox;
 };
@@ -50,6 +48,7 @@ struct Mision {
 
 int id_logueo;
 mt19937 globalGenerador(chrono::system_clock::now().time_since_epoch().count());
+Mision *lista_misiones = nullptr; // Cabeza de la lista enlazada de misiones
 
 // LOGO
 
@@ -106,25 +105,22 @@ void agregarLogroObtenido(Jugador *jugador, const string &titulo) {
     }
 }
 
-Mision *crearMision(string titulo, string descripcion, string requisitos, float saldo_otorgado, char clase, int cantidad) {
+Mision *crearMision(string titulo, string descripcion, string requisitos, float saldo_otorgado) {
     Mision *nuevo = new Mision;
     nuevo->titulo = titulo;
     nuevo->descripcion = descripcion;
     nuevo->requisitos = requisitos;
-    nuevo->clase = clase;
-    nuevo->cantidad = cantidad;
     nuevo->saldo_otorgado = saldo_otorgado;
     nuevo->prox = nullptr;
     return nuevo;
 }
 
-void insertarMision(Mision **lista, string titulo, string descripcion, string requisitos, float saldo_otorgado, char clase, int cantidad) {
-    Mision *nuevo = crearMision(titulo, descripcion, requisitos, saldo_otorgado, clase, cantidad), *temp = *lista;
-    
+void insertarMision(Mision **lista, string titulo, string descripcion, string requisitos, float saldo_otorgado) {
+    Mision *nuevo = crearMision(titulo, descripcion, requisitos, saldo_otorgado);
     if (!*lista) {
         *lista = nuevo;
-    } 
-    else {
+    } else {
+        Mision *temp = *lista;
         while (temp->prox) {
             temp = temp->prox;
         }
@@ -132,39 +128,14 @@ void insertarMision(Mision **lista, string titulo, string descripcion, string re
     }
 }
 
-void AgregarMision(Mision **misiones){
-    int cantidad; float valor;
-    char clase;
-    string titulo, descripcion, requisitos;
-
-    cout<<"\t\tAgrega una Mision"<<endl;
-    cout<<"========================================="<<endl;
-
-    cin.ignore();
-    cout<< "Ingrese el titulo de la mision: ";
-    getline(cin, titulo);
-    cout<< "Ingrese la descripcion de la mision: ";
-    getline(cin, descripcion);
-    cout<< "Ingrese el requisitos para cumplir la mision: ";
-    getline(cin, requisitos);
-
-    cout<< "Ingrese la clase de la mision (v: victoria, d: derrota, p: partidas jugadas): ";
-    cin >> clase;
-    clase = tolower(clase); //Para que siempre sea minuscula
-
-
-    cout<< "Ingrese la cantidad de victorias, derrotas o partidas jugadas: ";
-    cin>> cantidad;
-
-    cout<< "Cuantos bs se va a ganar por cumplir la mision: ";
-    cin>> valor;
-
-    insertarMision(&*misiones, titulo, descripcion, requisitos, valor, clase, cantidad);
-
+void inicializarMisiones() { // Con los archivos esto se va!!
+    insertarMision(&lista_misiones, "¿La primera es la vencida?", "Adivina el número a la primera.", "Adivinar a la primera", 2);
+    insertarMision(&lista_misiones, "Gana dinero extra", "Gana tres partidas.", "Alcanzar 3 victorias", 5);
+    insertarMision(&lista_misiones, "Jugador Constante", "Juega 5 partidas.", "Jugar 5 partidas", 3);
 }
 
-Mision *buscarMisionPorTitulo(Mision *misiones, string &buscado) {
-    Mision *actual = misiones;
+Mision *buscarMisionPorTitulo(const string& buscado) {
+    Mision* actual = lista_misiones;
     while (actual != nullptr) {
         if (actual->titulo == buscado) {
             return actual;
@@ -174,7 +145,7 @@ Mision *buscarMisionPorTitulo(Mision *misiones, string &buscado) {
     return nullptr;
 }
 
-void verificarMisiones(Mision *misiones, Jugador **perfiles) {
+void verificarMisiones(Jugador **perfiles) {
     Jugador *jugador_actual = nullptr;
     Jugador *aux_jugador = *perfiles;
 
@@ -187,23 +158,13 @@ void verificarMisiones(Mision *misiones, Jugador **perfiles) {
     }
 
     if (jugador_actual) {
-        Mision *mision_actual = misiones;
+        Mision *mision_actual = lista_misiones;
         while (mision_actual != nullptr) {
             bool cumplida = false;
-            if(mision_actual->clase == 'v'){
-                if(jugador_actual->victorias == mision_actual->cantidad){
-                    cumplida = true;
-                }
-            }
-            else if(mision_actual->clase == 'd'){
-                if(jugador_actual->derrotas == mision_actual->cantidad){
-                    cumplida = true;
-                }
-            }
-            else if(mision_actual->clase == 'p'){
-                if(jugador_actual->partidas_jugadas == mision_actual->cantidad){
-                    cumplida = true;
-                }
+            if (mision_actual->titulo == "Gana dinero extra" && jugador_actual->victorias >= 3) {
+                cumplida = true;
+            } else if (mision_actual->titulo == "Jugador Constante" && jugador_actual->partidas_jugadas >= 5) {
+                cumplida = true;
             }
 
             if (cumplida && !TieneLogro(jugador_actual, mision_actual->titulo)) {
@@ -219,8 +180,8 @@ void verificarMisiones(Mision *misiones, Jugador **perfiles) {
     }
 }
 
-void mostrarMisiones(Mision *misiones) {
-    Mision *mision_actual = misiones;
+void mostrarMisiones() {
+    Mision *mision_actual = lista_misiones;
 
     cout << "\n--- Misiones Disponibles ---" << endl;
     if (!mision_actual) {
@@ -236,97 +197,6 @@ void mostrarMisiones(Mision *misiones) {
         mision_actual = mision_actual->prox;
     }
 }
-
-void EliminarMision(Mision **misiones){
-    Mision *temp = *misiones, *anterior = nullptr;
-    string titulo;
-
-    system("cls");
-    cout << "\nEliminar Mision" << endl;
-    cout << "=========================================" << endl;
-    cin.ignore();
-    cout << "Ingrese el titulo de la mision exactamente como se llama: ";
-    getline(cin, titulo);
-
-    if (*misiones == nullptr) {
-        cout << "No hay jugadores para eliminar." << endl;
-        return;
-    }
-    while (temp != nullptr) {
-        if (temp->titulo == titulo) {
-            if (anterior == nullptr) {
-                *misiones = temp->prox;
-            } 
-            else{
-                anterior->prox = temp->prox;
-            }
-
-            delete temp;
-            cout << "La mision: " << titulo << ", se eliminó con éxito!" << endl;
-            return; 
-        }
-        anterior = temp;
-        temp = temp->prox;
-    }
-    cout << "La mision: " << titulo << ", no se encontrado " << endl;
-}
-
-void CargarMisionesDesdeArchivo(Mision **misiones, const string &filename) {
-    ifstream archivo(filename);
-    string line;
-    if (!archivo.is_open()) {
-        cout << "No se pudo abrir el archivo '" << filename << "' para lectura." << endl;
-        return;
-    }
-
-    while (getline(archivo, line)) {
-        if (line.empty() || line == "---") continue;
-
-        stringstream ss(line);
-        string titulo, descripcion, requisitos, claseStr, cantidadStr, saldoStr;
-
-        getline(ss, titulo, '|');
-        getline(ss, descripcion, '|');
-        getline(ss, requisitos, '|');
-        getline(ss, claseStr, '|');
-        getline(ss, cantidadStr, '|');
-        getline(ss, saldoStr, '|');
-
-        char clase = claseStr.empty() ? ' ' : claseStr[0];
-        int cantidad = cantidadStr.empty() ? 0 : stoi(cantidadStr);
-        float saldo_otorgado = saldoStr.empty() ? 0.0f : stof(saldoStr);
-
-        insertarMision(misiones, titulo, descripcion, requisitos, saldo_otorgado, clase, cantidad);
-    }
-    archivo.close();
-}
-
-void GuardarMisionesEnArchivo(Mision *misiones, const string &filename) {
-    ofstream archivo(filename);
-    Mision *actual = misiones;
-
-    if (!archivo.is_open()) {
-        cout << "No se pudo abrir el archivo '" << filename << "' para escritura." << endl;
-        return;
-    }
-
-    while (actual != nullptr) {
-        archivo << actual->titulo << "|"
-                << actual->descripcion << "|"
-                << actual->requisitos << "|"
-                << actual->clase << "|"
-                << actual->cantidad << "|"
-                << fixed << setprecision(2) << actual->saldo_otorgado << endl;
-
-        if (actual->prox != nullptr) {
-            archivo << "---" << endl;
-        }
-        actual = actual->prox;
-    }
-    archivo.close();
-}
-
-
 // Menus
 
 bool Vacio(Jugador *lista){
@@ -598,7 +468,7 @@ void ImprimirRanking(Jugador *ranking){
     cout<<"=================================================" << endl;
     cout<<"\tTOP|    Alias     | V | D | BS "<<endl;
     cout<<"\t-------------------------------"<<endl;
-    while (perfil != nullptr && perfil->privilegio == 'u'){
+    while (perfil != nullptr && perfil->id_Jugador < 6){ // Nota: Este límite (perfil->id_Jugador < 6) podría no ser el deseado para un ranking top N si los IDs no son secuenciales o si solo hay pocos jugadores. Se recomienda limitar por 'pos' o un contador.
         cout<<"\t"<< pos << espaciar(to_string(pos).size(), 7)
             << perfil->alias << espaciar(perfil->alias.size(), 13)
             << perfil->victorias << espaciar(to_string(perfil->victorias).size(), 4)
@@ -692,7 +562,7 @@ void PuntuacionJugador(Jugador **perfiles, int victorias, int derrotas, float sa
     }
 }
 
-void AdivinaElNumero(Jugador **perfiles, Mision *misiones){
+void AdivinaElNumero(Jugador **perfiles){
     Jugador *jugador_actual = nullptr, *aux = *perfiles;
     int adivinar, num, op = 1;
     
@@ -758,10 +628,11 @@ void AdivinaElNumero(Jugador **perfiles, Mision *misiones){
 
                     if(i == 0){
                         jugador_actual->saldo += 1.50;
-                        jugador_actual->saldo += 2;
+                        // Nota: La siguiente línea suma 2 al saldo, esto podría ser un error si ya sumaste 1.50
+                        // jugador_actual->saldo += 2; 
 
                         agregarLogroObtenido(jugador_actual, "¿La primera es la vencida?");
-                        verificarMisiones(misiones, perfiles);
+                        verificarMisiones(perfiles);
                     }
                     
                     jugador_actual->saldo += 0.50;
@@ -794,7 +665,7 @@ void AdivinaElNumero(Jugador **perfiles, Mision *misiones){
             }
 
             PuntuacionJugador(perfiles, jugador_actual->victorias, jugador_actual->derrotas, jugador_actual->saldo);
-            verificarMisiones(misiones, perfiles);
+            verificarMisiones(perfiles);
         }
 
     }while(op != 0);
@@ -821,8 +692,8 @@ void MenuAdmin(Jugador *perfiles){
     cout<<"4. Agregar una Mision"<<endl;
     cout<<"5. Ver Mision"<<endl;
     cout<<"6. Eliminar Mision"<<endl;
-    cout<<"7. Top 3 Mejores Jugadores"<<endl;
-    cout<<"8. Top 5 de Jugadores con mas partidas"<<endl;
+    cout<<"7. Top 3 Mejores Jugadores"<<endl; // Ahora este es el texto del menú
+    cout<<"8. Top 5 de Jugadores con mas partidas"<<endl; // Y este
     cout<<"0. Cerrar Sesion"<<endl;
 }
 
@@ -887,6 +758,34 @@ void EliminarJugador(Jugador **perfiles){
     cout << "Jugador con ID " << id_eliminar << " no encontrado " << endl;
 }
 
+void MostrarTop3Ganadores(Jugador *jugadores) {
+    system("cls");
+    cout << "\t\tTOP 3 JUGADORES GANADORES" << endl;
+    cout << "=================================================" << endl;
+    cout << "\tPOS |   Nombre    | V | D | BS " << endl;
+    cout << "\t-----------------------------------" << endl;
+
+    Jugador *rankingJugadores = RankingPorVictorias(jugadores); 
+    if (Vacio(rankingJugadores)) {
+        cout << "No hay jugadores para mostrar." << endl;
+    } else {
+        Jugador *actual = rankingJugadores;
+        int i = 0;
+        while (actual != nullptr && i < 3) { // Solo los 3 primeros
+            cout << "\t" << (i + 1) << espaciar(to_string(i + 1).size(), 7)
+                 << actual->alias << espaciar(actual->alias.size(), 13)
+                 << actual->victorias << espaciar(to_string(actual->victorias).size(), 4)
+                 << actual->derrotas << espaciar(to_string(actual->derrotas).size(), 4)
+                 << fixed << setprecision(2) << actual->saldo << endl;
+            cout << "\t-----------------------------------" << endl;
+            actual = actual->prox;
+            i++;
+        }
+    }
+    cout << "=================================================" << endl;
+    LiberarMemoriaJugadores(rankingJugadores); 
+}
+
 Jugador *RankingPorVictorias(Jugador *jugadores) {
     Jugador *aux = jugadores, *lista = nullptr;
 
@@ -904,19 +803,18 @@ Jugador *RankingPorVictorias(Jugador *jugadores) {
             (nuevo->victorias == lista->victorias && nuevo->derrotas < lista->derrotas)) {
             nuevo->prox = lista;
             lista = nuevo;
-        }
-        else{
-            Jugador *actual = lista;
-            while (actual->prox != nullptr && (actual->prox->victorias > nuevo->victorias ||(actual->prox->victorias == nuevo->victorias && actual->prox->derrotas < nuevo->derrotas))) {
-                actual=actual->prox; 
             }
-            nuevo->prox = actual->prox;
-            actual->prox = nuevo;
-        }
-        aux = aux->prox;
+            else{
+                Jugador *actual = lista;
+                while (actual->prox != nullptr && (actual->prox->victorias > nuevo->victorias ||(actual->prox->victorias == nuevo->victorias && actual->prox->derrotas < nuevo->derrotas))) {
+                    actual=actual->prox; 
+                    }
+                    nuevo->prox = actual->prox;
+                    actual->prox = nuevo;
+            }
     }
-    return lista;
 }
+    
 
 Jugador *RankingPorPartidas(Jugador *jugadores){
     Jugador *aux = jugadores, *lista = nullptr;
@@ -948,35 +846,6 @@ Jugador *RankingPorPartidas(Jugador *jugadores){
     return lista;
 }
 
-void MostrarTop3Ganadores(Jugador *jugadores) {
-    system("cls");
-
-    cout << "\t\tTOP 3 JUGADORES GANADORES" << endl;
-    cout << "=================================================" << endl;
-    cout << "\tPOS |   Nombre    | V | D | BS " << endl;
-    cout << "\t-----------------------------------" << endl;
-
-    Jugador *rankingJugadores = RankingPorVictorias(jugadores); 
-    if (Vacio(rankingJugadores)) {
-        cout << "No hay jugadores para mostrar." << endl;
-    } else {
-        Jugador *actual = rankingJugadores;
-        int i = 0;
-        while (actual != nullptr && i < 3 && actual->privilegio == 'u') { // Solo los 3 primeros
-            cout << "\t" << (i + 1) << espaciar(to_string(i + 1).size(), 7)
-                 << actual->alias << espaciar(actual->alias.size(), 13)
-                 << actual->victorias << espaciar(to_string(actual->victorias).size(), 4)
-                 << actual->derrotas << espaciar(to_string(actual->derrotas).size(), 4)
-                 << fixed << setprecision(2) << actual->saldo << endl;
-            cout << "\t-----------------------------------" << endl;
-            actual = actual->prox;
-            i++;
-        }
-    }
-    cout << "=================================================" << endl;
-}
-    
-
 void MostrarTop5Partidas(Jugador *jugadores) {
     system("cls");
     cout << "\t\tTOP 5 JUGADORES CON MÁS PARTIDAS" << endl;
@@ -990,7 +859,7 @@ void MostrarTop5Partidas(Jugador *jugadores) {
     } else {
         Jugador *actual = jugadoresClasificados;
         int i = 0;
-        while (actual != nullptr && i < 5 && actual->privilegio == 'u') {
+        while (actual != nullptr && i < 5) {
             cout << "\t" << (i + 1) << espaciar(to_string(i + 1).size(), 7)
                  << actual->alias << espaciar(actual->alias.size(), 13)
                  << actual->partidas_jugadas << espaciar(to_string(actual->partidas_jugadas).size(), 4)
@@ -1003,7 +872,9 @@ void MostrarTop5Partidas(Jugador *jugadores) {
         }
     }
     cout << "=================================================" << endl;
+    LiberarMemoriaJugadores(jugadoresClasificados); 
 }
+
 
 void CargarJugadoresDesdeArchivo(Jugador **perfiles, const string &filename) {
     ifstream archivo(filename);
@@ -1161,7 +1032,7 @@ void LiberarMemoriaJugadores(Jugador *perfiles) {
             delete tmp;
         }
 
-        delete aux; 
+        delete aux;
     }
 }
 
