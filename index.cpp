@@ -6,11 +6,13 @@ main(){
     SetConsoleOutputCP(CP_UTF8); // Sirve para imprimir caracteres especiales en la consola
 
     Jugador *perfiles = nullptr, *aux, *ranking = nullptr;
+    Mision *misiones = nullptr;
     int op = 1, opu, opa, opj;
     char priv;
     bool logueo;
-    inicializarMisiones();
+    //inicializarMisiones();
     CargarJugadoresDesdeArchivo(&perfiles, "C:/Users/User/Desktop/Oliver/Proyecto/GameQuest-Tracker/jugadores.txt");
+    CargarMisionesDesdeArchivo(&misiones, "C:/Users/User/Desktop/Oliver/Proyecto/GameQuest-Tracker/misiones.txt");
 
     while(op != 0){
         system("cls");
@@ -18,8 +20,6 @@ main(){
         MenuLogueo();
         cout<< "Ingrese una opcion: ";
         cin>> op;
-
-        
 
         switch (op){
             case 1:
@@ -52,10 +52,10 @@ main(){
 
                                 switch (opu){
                                     case 1:
-                                        AdivinaElNumero(&perfiles);
+                                        AdivinaElNumero(&perfiles, misiones);
                                         break;
                                     case 2:
-                                        mostrarMisiones();
+                                        mostrarMisiones(misiones);
                                         system("pause");
                                         break;
                                     case 3:
@@ -97,7 +97,7 @@ main(){
                                         break;
                                     
                                     default:
-                                        cout<< "Opcion Invalida, ingrese una opcion valida"<<endl;
+                                        cout<< "Opcion Invalida, ingrese una opcion valida"<<endl; 
                                         system("pause");
                                         break;
                                 }
@@ -128,10 +128,30 @@ main(){
                                         EliminarJugador(&perfiles);
                                         system("pause");
                                         break;
+                                    case 4:
+                                        AgregarMision(&misiones);
+                                        break;
+                                    case 5:
+                                        mostrarMisiones(misiones);
+                                        system("pause");
+                                        break;
+                                    case 6:
+                                        EliminarMision(&misiones);
+                                        system("pause");
+                                        break;
+                                    case 7: 
+                                        MostrarTop3Ganadores(perfiles);
+                                        system("pause");
+                                        break;
+                                    case 8: 
+                                        MostrarTop5Partidas(perfiles);
+                                        system("pause");
+                                        break;
                                     
                                     case 0:
                                         cout<<"Saliendo..."<<endl;
                                         GuardarJugadoresEnArchivo(perfiles, "C:/Users/User/Desktop/Oliver/Proyecto/GameQuest-Tracker/jugadores.txt");
+                                        GuardarMisionesEnArchivo(misiones, "C:/Users/User/Desktop/Oliver/Proyecto/GameQuest-Tracker/misiones.txt");
                                         break;
                                     default:
                                         cout<< "Opcion Invalida, ingrese una opcion valida"<<endl;
@@ -152,7 +172,7 @@ main(){
                 break;
             case 0:
                 cout<<"Saliendo..."<<endl;
-                GuardarJugadoresEnArchivo(perfiles, "C:/Users/User/Desktop/Oliver/Proyecto/GameQuest-Tracker/jugadores.txt");
+                GuardarJugadoresEnArchivo(perfiles, "jugadores.txt");
                 break;
             
             default:
