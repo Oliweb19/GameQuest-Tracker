@@ -6,7 +6,32 @@
 ¿La primera es la vencida?|25/06/2025
 Gana dinero extra|25/06/2025
 ---
-4|Aaron|aa16|1234|2007|0|0|0|50.00|u
+4|Aaron|aa16|1234|2007|4|2|6|89.10|u
+Gana dinero extra|26/06/2025
+Jugador Constante|28/06/2025
+Motivacion para jugar|28/06/2025
 ---
-5|Pedro|pedrito|159753|2005|0|0|0|50.00|u
+5|Pedro|pedrito|1234|2005|4|15|19|87.10|u
+¿La primera es la vencida?|28/06/2025
+Jugador Constante|28/06/2025
+Motivacion para jugar|28/06/2025
 ---
+6|Oliver|bambam19|1910|2005|3|3|6|87.60|u
+Jugador Constante|28/06/2025
+Motivacion para jugar|28/06/2025
+---
+7|Maria|mary_gamer|1234|2004|5|1|6|65.25|u
+Gana dinero extra|28/06/2025
+---
+8|Carlos|carlitos|1234|2003|1|4|5|45.00|u
+Motivacion para jugar|28/06/2025
+---
+9|Laura|laura_p|1234|2006|7|2|9|92.70|u
+¿La primera es la vencida?|28/06/2025
+Gana dinero extra|28/06/2025
+Jugador Constante|28/06/2025
+---
+10|Jorge|jorge_pro|1234|2002|2|8|10|38.90|u
+Motivacion para jugar|28/06/2025
+---
+11|Ana|anita_x|1234|2007|0|0|0|50.00|u
